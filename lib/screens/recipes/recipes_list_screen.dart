@@ -4,10 +4,14 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/gradients.dart';
+import '../../models/pricing.dart';
 import '../../models/recipe.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/guest_data_store.dart';
 import '../../providers/recipes_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/margin_badge.dart';
 
 class RecipesListScreen extends StatefulWidget {
   const RecipesListScreen({super.key});
@@ -94,6 +98,13 @@ class _RecipeCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
+    // In guest mode the pricing store is in-memory and can be read
+    // synchronously — watch it so the badge updates when the user calculates
+    // pricing elsewhere. Auth mode would need a per-recipe API fetch which we
+    // skip in the list (the detail page shows the full pricing card).
+    final Pricing? pricing = _lookupPricing(context, recipe.id);
+    final double? marginPct = _marginPercent(pricing);
+
     return GlassCard(
       onTap: () => context.push('/recipes/${recipe.id}'),
       child: Row(
@@ -124,10 +135,27 @@ class _RecipeCard extends StatelessWidget {
               ],
             ),
           ),
+          if (marginPct != null) ...[
+            MarginBadge(marginPercent: marginPct, compact: true),
+            const SizedBox(width: 6),
+          ],
           Icon(Icons.chevron_right, color: c.textSecondary),
         ],
       ),
     );
+  }
+
+  Pricing? _lookupPricing(BuildContext context, int recipeId) {
+    final isGuest = context.watch<AuthProvider>().isGuest;
+    if (!isGuest) return null;
+    return context.watch<GuestDataStore>().pricingFor(recipeId);
+  }
+
+  double? _marginPercent(Pricing? p) {
+    if (p == null || p.suggestedPrice == null || p.suggestedPrice! <= 0) {
+      return null;
+    }
+    return ((p.suggestedPrice! - p.hppPerUnit) / p.suggestedPrice!) * 100;
   }
 
   String _qty(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();

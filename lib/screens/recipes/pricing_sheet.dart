@@ -52,7 +52,6 @@ class _PricingSheetState extends State<PricingSheet> {
   final List<_AllocEdit> _allocs = [];
   double _marginPercent = 30;
   bool _loading = true;
-  HppBreakdown? _persisted; // last result from the backend (or guest calc)
 
   @override
   void initState() {
@@ -122,16 +121,22 @@ class _PricingSheetState extends State<PricingSheet> {
         .where((a) => a.included)
         .map((a) => (overheadCostId: a.overhead.id, estimatedMonthlyProduction: a.emp))
         .toList();
-    final result = await context.read<PricingProvider>().calculate(
+    final pricingProv = context.read<PricingProvider>();
+    final result = await pricingProv.calculate(
           recipeId: _recipe!.id,
           targetMarginPercent: _marginPercent,
           allocations: allocs,
         );
     if (!mounted) return;
     if (result != null) {
-      setState(() => _persisted = result);
+      // Clear so a subsequent open of the sheet starts fresh instead of
+      // reusing this recipe's cached breakdown on top of the live preview.
+      pricingProv.clear();
+      final messenger = ScaffoldMessenger.of(context);
+      context.pop();
+      messenger.showSnackBar(const SnackBar(content: Text('Pricing updated')));
     } else {
-      final err = context.read<PricingProvider>().error ?? 'Failed';
+      final err = pricingProv.error ?? 'Failed';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
@@ -154,7 +159,6 @@ class _PricingSheetState extends State<PricingSheet> {
     }
 
     final preview = _computeLivePreview();
-    final resultToShow = _persisted ?? preview;
     final pricingProv = context.watch<PricingProvider>();
 
     return Scaffold(
@@ -164,7 +168,7 @@ class _PricingSheetState extends State<PricingSheet> {
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 700;
             final left = _buildForm(c);
-            final right = _buildResult(c, resultToShow, isPersisted: _persisted != null);
+            final right = _buildResult(c, preview);
             if (wide) {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -293,7 +297,7 @@ class _PricingSheetState extends State<PricingSheet> {
     );
   }
 
-  Widget _buildResult(AppColors c, HppBreakdown? b, {required bool isPersisted}) {
+  Widget _buildResult(AppColors c, HppBreakdown? b) {
     if (b == null) {
       return GlassCard(
         child: Row(
@@ -305,11 +309,10 @@ class _PricingSheetState extends State<PricingSheet> {
         ),
       );
     }
-    final label = isPersisted ? 'Saved Result' : 'Live Estimate';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        SectionHeader(title: label),
+        const SectionHeader(title: 'Live Estimate'),
         ClipRRect(
           borderRadius: BorderRadius.circular(22),
           child: DecoratedBox(
@@ -443,17 +446,6 @@ class _PricingSheetState extends State<PricingSheet> {
         if (marginHealth(b.marginPercent) != MarginHealth.good) ...[
           const SizedBox(height: 12),
           _MarginWarning(margin: b.marginPercent),
-        ],
-        if (isPersisted) ...[
-          const SizedBox(height: 12),
-          OutlinedButton.icon(
-            icon: const Icon(Icons.close),
-            label: const Text('Done'),
-            onPressed: () {
-              context.read<PricingProvider>().clear();
-              context.pop();
-            },
-          ),
         ],
       ],
     );

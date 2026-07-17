@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 
 import '../models/hpp_breakdown.dart';
+import '../models/pricing.dart';
 import '../services/pricing_service.dart';
 
 class PricingProvider extends ChangeNotifier {
@@ -38,6 +39,9 @@ class PricingProvider extends ChangeNotifier {
       notifyListeners();
     }
   }
+
+  Future<Pricing?> fetchForRecipe(int recipeId) =>
+      _service.fetchForRecipe(recipeId);
 
   void clear() {
     _last = null;
