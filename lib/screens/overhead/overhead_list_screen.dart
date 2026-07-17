@@ -9,6 +9,7 @@ import '../../providers/overhead_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/section_header.dart';
+import '../../widgets/skeleton_box.dart';
 
 class OverheadListScreen extends StatefulWidget {
   const OverheadListScreen({super.key});
@@ -43,7 +44,27 @@ class _OverheadListScreenState extends State<OverheadListScreen> {
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
         child: p.loading && p.items.isEmpty
-            ? const Center(child: CircularProgressIndicator())
+            ? ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                children: const [
+                  SkeletonBox(height: 48, radius: 12),
+                  SizedBox(height: 20),
+                  SkeletonBox(width: 90, height: 20, radius: 8),
+                  SizedBox(height: 12),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                ],
+              )
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [

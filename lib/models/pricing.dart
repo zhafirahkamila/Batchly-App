@@ -14,6 +14,10 @@ class Pricing {
   });
 
   factory Pricing.fromJson(Map<String, dynamic> json) {
+    // Backend's GET /pricing endpoint returns the timestamp as `calculated_at`
+    // (matches HppBreakdown). Older code paths and the guest store may send
+    // `updated_at` — accept either.
+    final tsRaw = json['calculated_at'] ?? json['updated_at'];
     return Pricing(
       recipeId: (json['recipe_id'] as num).toInt(),
       hppPerUnit: _num(json['hpp_per_unit']),
@@ -22,9 +26,7 @@ class Pricing {
           : _num(json['target_margin_percent']),
       suggestedPrice:
           json['suggested_price'] == null ? null : _num(json['suggested_price']),
-      updatedAt: json['updated_at'] == null
-          ? null
-          : DateTime.tryParse(json['updated_at'].toString()),
+      updatedAt: tsRaw == null ? null : DateTime.tryParse(tsRaw.toString()),
     );
   }
 }

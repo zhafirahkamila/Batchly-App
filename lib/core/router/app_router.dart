@@ -161,7 +161,7 @@ GoRouter buildRouter(AuthProvider auth) {
     ],
     errorBuilder: (_, state) => Scaffold(
       appBar: AppBar(title: const Text('404')),
-      body: Center(child: Text('Halaman tidak ditemukan: ${state.uri}')),
+      body: Center(child: Text('Page not found: ${state.uri}')),
     ),
   );
 }

@@ -35,32 +35,36 @@ class GradientHeroCard extends StatelessWidget {
           gradient: AppGradients.accent(c),
           borderRadius: radius,
         ),
-        child: Stack(
-          fit: StackFit.expand,
-          children: [
-            // Decorative blurred blobs to give the card visual depth.
-            Positioned(
-              top: -40,
-              right: -40,
-              child: _Blob(color: Colors.white.withOpacity(0.18), size: 160),
-            ),
-            Positioned(
-              bottom: -30,
-              left: -20,
-              child: _Blob(color: Colors.white.withOpacity(0.10), size: 120),
-            ),
-            if (c.useGlassBlur)
-              BackdropFilter(
-                filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
-                child: const SizedBox(),
+        // IntrinsicHeight tightens the vertical constraints so `StackFit.expand`
+        // is safe inside an unbounded parent (e.g. a ListView child).
+        child: IntrinsicHeight(
+          child: Stack(
+            fit: StackFit.expand,
+            children: [
+              // Decorative blurred blobs to give the card visual depth.
+              Positioned(
+                top: -40,
+                right: -40,
+                child: _Blob(color: Colors.white.withOpacity(0.18), size: 160),
               ),
-            Center(
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 720),
-                child: Padding(padding: padding, child: child),
+              Positioned(
+                bottom: -30,
+                left: -20,
+                child: _Blob(color: Colors.white.withOpacity(0.10), size: 120),
               ),
-            ),
-          ],
+              if (c.useGlassBlur)
+                BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 12, sigmaY: 12),
+                  child: const SizedBox(),
+                ),
+              Center(
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(maxWidth: 720),
+                  child: Padding(padding: padding, child: child),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

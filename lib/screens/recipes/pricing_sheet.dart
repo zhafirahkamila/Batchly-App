@@ -16,8 +16,10 @@ import '../../providers/ingredients_provider.dart';
 import '../../providers/overhead_provider.dart';
 import '../../providers/pricing_provider.dart';
 import '../../providers/recipes_provider.dart';
+import '../../widgets/animated_number.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/margin_badge.dart';
+import '../../widgets/margin_warning.dart';
 import '../../widgets/primary_button.dart';
 import '../../widgets/section_header.dart';
 
@@ -47,11 +49,22 @@ class _AllocEdit {
   _AllocEdit({required this.overhead});
 }
 
+enum _PricingMode { margin, competitor }
+
 class _PricingSheetState extends State<PricingSheet> {
   Recipe? _recipe;
   final List<_AllocEdit> _allocs = [];
   double _marginPercent = 30;
+  _PricingMode _mode = _PricingMode.margin;
+  final _competitorPriceCtrl = TextEditingController();
+  double? _competitorPrice;
   bool _loading = true;
+
+  @override
+  void dispose() {
+    _competitorPriceCtrl.dispose();
+    super.dispose();
+  }
 
   @override
   void initState() {
@@ -88,6 +101,10 @@ class _PricingSheetState extends State<PricingSheet> {
 
   /// Runs the same math the backend does, but locally, so the numbers update
   /// as the user drags the slider without a server round-trip.
+  ///
+  /// In competitor mode we derive the effective margin from the entered price
+  /// and the current HPP, then feed that through the same computeHpp() —
+  /// keeps the preview / persist paths identical.
   HppBreakdown? _computeLivePreview() {
     if (_recipe == null) return null;
     try {
@@ -104,28 +121,94 @@ class _PricingSheetState extends State<PricingSheet> {
           .where((a) => a.included)
           .map((a) => (overhead: a.overhead, estimatedMonthlyProduction: a.emp))
           .toList();
+      final effectiveMargin = _effectiveMarginPercent(
+        recipe: _recipe!,
+        ingredients: ingredients,
+        allocs: allocs,
+      );
+      if (effectiveMargin == null) return null;
       return computeHpp(HppInputs(
         recipe: _recipe!,
         ingredients: ingredients,
         overheadAllocations: allocs,
-        targetMarginPercent: _marginPercent,
+        targetMarginPercent: effectiveMargin,
       ));
     } catch (_) {
       return null;
     }
   }
 
+  /// Returns the target margin % to pass into computeHpp / the backend.
+  ///
+  /// - Margin mode: the slider value directly.
+  /// - Competitor mode: derive from `(price - hpp) / price * 100`. Requires
+  ///   a valid HPP and a positive price; returns null (skip preview) when
+  ///   the user hasn't typed a price yet, or when hpp/price are non-positive.
+  ///   Clamps to <99.9 to avoid divide-by-zero on the backend side.
+  double? _effectiveMarginPercent({
+    required Recipe recipe,
+    required List<({RecipeIngredient row, Ingredient ingredient})> ingredients,
+    required List<({Overhead overhead, int estimatedMonthlyProduction})> allocs,
+  }) {
+    if (_mode == _PricingMode.margin) return _marginPercent;
+    final price = _competitorPrice;
+    if (price == null || price <= 0) return null;
+    // Compute HPP with a placeholder margin so we can read hppPerUnit back.
+    final hppOnly = computeHpp(HppInputs(
+      recipe: recipe,
+      ingredients: ingredients,
+      overheadAllocations: allocs,
+      targetMarginPercent: 0,
+    ));
+    final hpp = hppOnly.hppPerUnit;
+    if (!hpp.isFinite) return null;
+    final derived = ((price - hpp) / price) * 100;
+    // Backend rejects >=100 (divide by zero on inverse). Clamp to a safe range.
+    return derived.clamp(-9999, 99.9).toDouble();
+  }
+
   Future<void> _submit() async {
     if (_recipe == null) return;
+    final ingProv = context.read<IngredientsProvider>();
+    final ingredients = <({RecipeIngredient row, Ingredient ingredient})>[];
+    for (final row in _recipe!.ingredients) {
+      final ing = ingProv.byId(row.ingredientId);
+      if (ing == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('An ingredient is missing — refresh Pantry and retry.')),
+        );
+        return;
+      }
+      ingredients.add((row: row, ingredient: ing));
+    }
     final allocs = _allocs
+        .where((a) => a.included)
+        .map((a) => (overhead: a.overhead, estimatedMonthlyProduction: a.emp))
+        .toList();
+    final marginToSubmit = _effectiveMarginPercent(
+      recipe: _recipe!,
+      ingredients: ingredients,
+      allocs: allocs,
+    );
+    if (marginToSubmit == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(
+          _mode == _PricingMode.competitor
+              ? 'Enter a competitor price first.'
+              : 'Cannot calculate — check inputs.',
+        )),
+      );
+      return;
+    }
+    final submitAllocs = _allocs
         .where((a) => a.included)
         .map((a) => (overheadCostId: a.overhead.id, estimatedMonthlyProduction: a.emp))
         .toList();
     final pricingProv = context.read<PricingProvider>();
     final result = await pricingProv.calculate(
           recipeId: _recipe!.id,
-          targetMarginPercent: _marginPercent,
-          allocations: allocs,
+          targetMarginPercent: marginToSubmit,
+          allocations: submitAllocs,
         );
     if (!mounted) return;
     if (result != null) {
@@ -258,41 +341,36 @@ class _PricingSheetState extends State<PricingSheet> {
           },
         ),
         const SizedBox(height: 20),
-        const SectionHeader(title: 'Target Margin'),
-        GlassCard(
-          child: Column(
-            children: [
-              Row(
-                children: [
-                  Text('${_marginPercent.toStringAsFixed(1)}%',
-                      style: TextStyle(
-                        color: c.textPrimary,
-                        fontSize: 22,
-                        fontWeight: FontWeight.w700,
-                      )),
-                  const Spacer(),
-                  MarginBadge(marginPercent: _marginPercent),
-                ],
-              ),
-              const SizedBox(height: 8),
-              SliderTheme(
-                data: SliderTheme.of(context).copyWith(
-                  activeTrackColor: c.accentPrimary,
-                  thumbColor: c.accentPrimary,
-                  overlayColor: c.accentPrimary.withOpacity(0.12),
-                ),
-                child: Slider(
-                  value: _marginPercent,
-                  min: 0,
-                  max: 90,
-                  divisions: 90,
-                  label: '${_marginPercent.round()}%',
-                  onChanged: (v) => setState(() => _marginPercent = v),
-                ),
-              ),
-            ],
-          ),
+        const SectionHeader(title: 'Pricing Strategy'),
+        SegmentedButton<_PricingMode>(
+          segments: const [
+            ButtonSegment(
+              value: _PricingMode.margin,
+              icon: Icon(Icons.percent),
+              label: Text('Target margin'),
+            ),
+            ButtonSegment(
+              value: _PricingMode.competitor,
+              icon: Icon(Icons.storefront_outlined),
+              label: Text('Competitor price'),
+            ),
+          ],
+          selected: {_mode},
+          onSelectionChanged: (s) => setState(() => _mode = s.first),
+          showSelectedIcon: false,
         ),
+        const SizedBox(height: 10),
+        if (_mode == _PricingMode.margin)
+          _MarginSlider(
+            marginPercent: _marginPercent,
+            onChanged: (v) => setState(() => _marginPercent = v),
+          )
+        else
+          _CompetitorPriceInput(
+            controller: _competitorPriceCtrl,
+            impliedMargin: _computeLivePreview()?.marginPercent,
+            onChanged: (v) => setState(() => _competitorPrice = v),
+          ),
       ],
     );
   }
@@ -331,20 +409,22 @@ class _PricingSheetState extends State<PricingSheet> {
                     ],
                   ),
                   const SizedBox(height: 6),
-                  Text(
-                    formatRupiah(b.suggestedPrice),
+                  AnimatedNumber(
+                    value: b.suggestedPrice,
+                    formatter: formatRupiah,
                     style: const TextStyle(
                       color: Colors.white,
                       fontSize: 32,
                       fontWeight: FontWeight.w800,
+                      letterSpacing: -0.5,
                     ),
                   ),
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _MiniStat(label: 'COGS', value: formatRupiah(b.hppPerUnit)),
+                      _MiniStat(label: 'COGS', value: b.hppPerUnit),
                       const SizedBox(width: 20),
-                      _MiniStat(label: 'Profit', value: formatRupiah(b.profitPerUnit)),
+                      _MiniStat(label: 'Profit', value: b.profitPerUnit),
                     ],
                   ),
                 ],
@@ -445,7 +525,7 @@ class _PricingSheetState extends State<PricingSheet> {
         ],
         if (marginHealth(b.marginPercent) != MarginHealth.good) ...[
           const SizedBox(height: 12),
-          _MarginWarning(margin: b.marginPercent),
+          MarginWarning(margin: b.marginPercent),
         ],
       ],
     );
@@ -456,7 +536,7 @@ class _PricingSheetState extends State<PricingSheet> {
 
 class _MiniStat extends StatelessWidget {
   final String label;
-  final String value;
+  final double value;
   const _MiniStat({required this.label, required this.value});
 
   @override
@@ -466,42 +546,103 @@ class _MiniStat extends StatelessWidget {
       children: [
         Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
         const SizedBox(height: 2),
-        Text(value,
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 16,
-              fontWeight: FontWeight.w700,
-            )),
+        AnimatedNumber(
+          value: value,
+          formatter: formatRupiah,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
       ],
     );
   }
 }
 
-class _MarginWarning extends StatelessWidget {
-  final double margin;
-  const _MarginWarning({required this.margin});
+class _MarginSlider extends StatelessWidget {
+  final double marginPercent;
+  final ValueChanged<double> onChanged;
+
+  const _MarginSlider({required this.marginPercent, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final isDanger = margin <= 0;
-    final bg = isDanger ? c.marginDangerBg : c.marginWarningBg;
-    final fg = isDanger ? c.marginDangerText : c.marginWarningText;
-    final msg = isDanger
-        ? 'Selling price is below COGS — you will lose money on each unit sold.'
-        : 'Thin margin (<15%). Consider raising the price or lowering ingredient costs.';
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: bg,
-        borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: fg.withOpacity(0.3)),
-      ),
-      child: Row(
+    return GlassCard(
+      child: Column(
         children: [
-          Icon(isDanger ? Icons.error_outline : Icons.warning_amber_rounded, color: fg),
-          const SizedBox(width: 10),
-          Expanded(child: Text(msg, style: TextStyle(color: fg, fontSize: 13))),
+          Row(
+            children: [
+              Text('${marginPercent.toStringAsFixed(1)}%',
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontSize: 22,
+                    fontWeight: FontWeight.w700,
+                  )),
+              const Spacer(),
+              MarginBadge(marginPercent: marginPercent),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Slider(
+            value: marginPercent,
+            min: 0,
+            max: 90,
+            divisions: 90,
+            label: '${marginPercent.round()}%',
+            onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Enter a competitor / target selling price; the implied margin is shown
+/// live using the same MarginBadge as the slider — so the color band gives
+/// instant feedback on whether the price is healthy.
+class _CompetitorPriceInput extends StatelessWidget {
+  final TextEditingController controller;
+  final double? impliedMargin;
+  final ValueChanged<double?> onChanged;
+
+  const _CompetitorPriceInput({
+    required this.controller,
+    required this.impliedMargin,
+    required this.onChanged,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          TextField(
+            controller: controller,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            decoration: const InputDecoration(
+              labelText: 'Competitor / target price',
+              prefixText: 'Rp ',
+              helperText: 'App will match this price and back-calculate the margin.',
+            ),
+            onChanged: (v) {
+              final cleaned = v.replaceAll(',', '').replaceAll('.', '');
+              final n = double.tryParse(cleaned);
+              onChanged((n != null && n > 0) ? n : null);
+            },
+          ),
+          const SizedBox(height: 10),
+          Row(
+            children: [
+              Text('Implied margin',
+                  style: TextStyle(color: c.textSecondary, fontSize: 13)),
+              const Spacer(),
+              MarginBadge(marginPercent: impliedMargin),
+            ],
+          ),
         ],
       ),
     );

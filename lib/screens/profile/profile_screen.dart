@@ -56,17 +56,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       final svc = context.read<ProfileService>();
       final updated = await svc.update(
         name: _nameCtrl.text.trim(),
-        businessName: _businessCtrl.text.trim().isEmpty ? '' : _businessCtrl.text.trim(),
+        businessName: _businessCtrl.text.trim().isEmpty
+            ? ''
+            : _businessCtrl.text.trim(),
       );
       auth.updateLocalUser(updated);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profile saved')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(const SnackBar(content: Text('Profile saved')));
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -85,7 +89,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeProv = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profile')),
+      appBar: AppBar(
+        title: const Text(
+          'Profile',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+      ),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -118,18 +127,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(auth.user?.name ?? 'Guest',
-                            style: TextStyle(
-                              color: c.textPrimary,
-                              fontSize: 18,
-                              fontWeight: FontWeight.w700,
-                            )),
-                        Text(auth.user?.email ?? '',
-                            style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                        Text(
+                          auth.user?.name ?? 'Guest',
+                          style: TextStyle(
+                            color: c.textPrimary,
+                            fontSize: 18,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        Text(
+                          auth.user?.email ?? '',
+                          style: TextStyle(
+                            color: c.textSecondary,
+                            fontSize: 12,
+                          ),
+                        ),
                         if (auth.isGuest)
                           Container(
                             margin: const EdgeInsets.only(top: 6),
-                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8,
+                              vertical: 2,
+                            ),
                             decoration: BoxDecoration(
                               color: c.accentPrimary.withOpacity(0.14),
                               borderRadius: BorderRadius.circular(999),
@@ -175,14 +194,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Theme Mode',
-                      style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
+                  Text(
+                    'Theme Mode',
+                    style: TextStyle(
+                      color: c.textPrimary,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
                   const SizedBox(height: 10),
                   SegmentedButton<ThemeMode>(
                     segments: const [
-                      ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode)),
-                      ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode)),
-                      ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto)),
+                      ButtonSegment(
+                        value: ThemeMode.light,
+                        label: Text('Light'),
+                        icon: Icon(Icons.light_mode),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.dark,
+                        label: Text('Dark'),
+                        icon: Icon(Icons.dark_mode),
+                      ),
+                      ButtonSegment(
+                        value: ThemeMode.system,
+                        label: Text('System'),
+                        icon: Icon(Icons.brightness_auto),
+                      ),
                     ],
                     selected: {themeProv.mode},
                     onSelectionChanged: (s) => themeProv.setMode(s.first),
@@ -197,9 +233,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(Icons.receipt_outlined, color: c.accentPrimary),
+                    leading: Icon(
+                      Icons.receipt_outlined,
+                      color: c.accentPrimary,
+                    ),
                     title: const Text('Overhead Costs'),
-                    subtitle: const Text('Manage costs for electricity, gas, packaging, etc.'),
+                    subtitle: const Text(
+                      'Manage costs for electricity, gas, packaging, etc.',
+                    ),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/profile/overhead'),
                   ),
@@ -207,7 +248,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ListTile(
                     leading: Icon(Icons.help_outline, color: c.textSecondary),
                     title: const Text('About Batchly'),
-                    subtitle: const Text('COGS calculator for small F&B businesses.'),
+                    subtitle: const Text(
+                      'COGS calculator for small F&B businesses.',
+                    ),
                     onTap: () {
                       showAboutDialog(
                         context: context,
@@ -228,7 +271,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 foregroundColor: c.marginDangerText,
                 side: BorderSide(color: c.marginDangerText.withOpacity(0.4)),
                 padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
               ),
             ),
             const SizedBox(height: 32),

@@ -132,7 +132,7 @@ class AuthProvider extends ChangeNotifier {
   String _friendlyError(Object e) {
     final s = e.toString();
     if (s.contains('SocketException') || s.contains('Failed host')) {
-      return 'Tidak bisa terhubung ke server. Pastikan backend berjalan.';
+      return 'Cannot connect to server. Make sure the backend is running.';
     }
     // ApiException.toString() already carries the backend message.
     return s.replaceFirst('ApiException', '').replaceFirst(RegExp(r'^\s*[(].*?[)]:\s*'), '');

@@ -9,6 +9,7 @@ import '../../models/ingredient.dart';
 import '../../providers/ingredients_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_card.dart';
+import '../../widgets/skeleton_box.dart';
 
 class IngredientsListScreen extends StatefulWidget {
   const IngredientsListScreen({super.key});
@@ -58,13 +59,9 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
     final messenger = ScaffoldMessenger.of(context);
     try {
       await context.read<IngredientsProvider>().delete(ing.id);
-      messenger.showSnackBar(
-        SnackBar(content: Text('${ing.name} deleted')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('${ing.name} deleted')));
     } catch (e) {
-      messenger.showSnackBar(
-        SnackBar(content: Text('Failed to delete: $e')),
-      );
+      messenger.showSnackBar(SnackBar(content: Text('Failed to delete: $e')));
     }
   }
 
@@ -85,7 +82,10 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.delete_outline, color: c.marginDangerText),
-                title: Text('Delete', style: TextStyle(color: c.marginDangerText)),
+                title: Text(
+                  'Delete',
+                  style: TextStyle(color: c.marginDangerText),
+                ),
                 onTap: () => Navigator.of(ctx).pop('delete'),
               ),
               const SizedBox(height: 8),
@@ -114,7 +114,12 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Pantry')),
+      appBar: AppBar(
+        title: const Text(
+          'Pantry',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/ingredients/new'),
         icon: const Icon(Icons.add),
@@ -123,7 +128,29 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
         child: p.loading && p.items.isEmpty
-            ? const Center(child: CircularProgressIndicator())
+            ? ListView(
+                padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
+                children: const [
+                  SkeletonBox(height: 52, radius: 14),
+                  SizedBox(height: 14),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 10),
+                    child: SkeletonCard(height: 68),
+                  ),
+                ],
+              )
             : ListView(
                 padding: const EdgeInsets.fromLTRB(16, 12, 16, 96),
                 children: [
@@ -140,7 +167,9 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                       padding: const EdgeInsets.only(top: 60),
                       child: EmptyState(
                         icon: Icons.egg_alt_outlined,
-                        title: _query.isEmpty ? 'No ingredients yet' : 'No results',
+                        title: _query.isEmpty
+                            ? 'No ingredients yet'
+                            : 'No results',
                         subtitle: _query.isEmpty
                             ? 'Add your first ingredient to start calculating COGS.'
                             : 'Try a different keyword.',
@@ -178,7 +207,8 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                                 ingredient: filtered[idx],
                                 colors: c,
                                 onConfirm: () => _confirmDelete(filtered[idx]),
-                                onDismissed: () => _performDelete(filtered[idx]),
+                                onDismissed: () =>
+                                    _performDelete(filtered[idx]),
                               ),
                               if (idx < filtered.length - 1)
                                 SizedBox(height: gaps[idx % gaps.length]),
@@ -226,11 +256,13 @@ class _DismissibleTile extends StatelessWidget {
           children: [
             Icon(Icons.delete_outline, color: Colors.white, size: 22),
             SizedBox(width: 6),
-            Text('Delete',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w600,
-                )),
+            Text(
+              'Delete',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ],
         ),
       ),
@@ -259,8 +291,8 @@ class _IngredientTile extends StatelessWidget {
     final baseLabel = unit?.family.name == 'weight'
         ? '/g'
         : unit?.family.name == 'volume'
-            ? '/ml'
-            : '/pcs';
+        ? '/ml'
+        : '/pcs';
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: () => context.push('/ingredients/${ingredient.id}/edit'),
@@ -281,11 +313,13 @@ class _IngredientTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(ingredient.name,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    )),
+                Text(
+                  ingredient.name,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 const SizedBox(height: 2),
                 Text(
                   '${_qtyDisplay(ingredient.purchaseQty)} ${ingredient.purchaseUnit} · '
@@ -299,13 +333,17 @@ class _IngredientTile extends StatelessWidget {
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(formatRupiah(ingredient.pricePerBaseUnit, decimalDigits: 2),
-                  style: TextStyle(
-                    color: colors.textPrimary,
-                    fontWeight: FontWeight.w700,
-                  )),
-              Text(baseLabel,
-                  style: TextStyle(color: colors.textSecondary, fontSize: 11)),
+              Text(
+                formatRupiah(ingredient.pricePerBaseUnit, decimalDigits: 2),
+                style: TextStyle(
+                  color: colors.textPrimary,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+              Text(
+                baseLabel,
+                style: TextStyle(color: colors.textSecondary, fontSize: 11),
+              ),
             ],
           ),
         ],
@@ -313,5 +351,6 @@ class _IngredientTile extends StatelessWidget {
     );
   }
 
-  String _qtyDisplay(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();
+  String _qtyDisplay(double q) =>
+      q == q.roundToDouble() ? q.toInt().toString() : q.toString();
 }

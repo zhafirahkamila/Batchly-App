@@ -12,6 +12,7 @@ import '../../providers/recipes_provider.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/margin_badge.dart';
+import '../../widgets/skeleton_box.dart';
 
 class RecipesListScreen extends StatefulWidget {
   const RecipesListScreen({super.key});
@@ -34,7 +35,12 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
     final p = context.watch<RecipesProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Recipes')),
+      appBar: AppBar(
+        title: const Text(
+          'Recipes',
+          style: TextStyle(fontSize: 17, fontWeight: FontWeight.w600),
+        ),
+      ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/recipes/new'),
         icon: const Icon(Icons.add),
@@ -43,49 +49,78 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
         child: p.loading && p.items.isEmpty
-            ? const Center(child: CircularProgressIndicator())
+            ? ListView(
+                padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                children: const [
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: SkeletonCard(height: 78),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: SkeletonCard(height: 78),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: SkeletonCard(height: 78),
+                  ),
+                  Padding(
+                    padding: EdgeInsets.only(bottom: 12),
+                    child: SkeletonCard(height: 78),
+                  ),
+                ],
+              )
             : p.items.isEmpty
-                ? ListView(
-                    children: [
-                      const SizedBox(height: 80),
-                      EmptyState(
-                        icon: Icons.receipt_long_rounded,
-                        title: 'No recipes yet',
-                        subtitle: 'Add your first recipe to start calculating COGS.',
-                      ),
-                    ],
-                  )
-                : LayoutBuilder(
-                    builder: (context, constraints) {
-                      final wide = constraints.maxWidth >= 600;
-                      return ListView.builder(
-                        padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
-                        itemCount: wide ? (p.items.length / 2).ceil() : p.items.length,
-                        itemBuilder: (context, index) {
-                          if (!wide) {
-                            return Padding(
-                              padding: const EdgeInsets.only(bottom: 12),
-                              child: _RecipeCard(recipe: p.items[index]),
-                            );
-                          }
-                          final left = p.items[index * 2];
-                          final rightIdx = index * 2 + 1;
-                          final right = rightIdx < p.items.length ? p.items[rightIdx] : null;
-                          return Padding(
-                            padding: const EdgeInsets.only(bottom: 12),
-                            child: Row(
-                              crossAxisAlignment: CrossAxisAlignment.stretch,
-                              children: [
-                                Expanded(child: _RecipeCard(recipe: left)),
-                                const SizedBox(width: 12),
-                                Expanded(child: right == null ? const SizedBox() : _RecipeCard(recipe: right)),
-                              ],
+            ? ListView(
+                children: [
+                  const SizedBox(height: 80),
+                  EmptyState(
+                    icon: Icons.receipt_long_rounded,
+                    title: 'No recipes yet',
+                    subtitle:
+                        'Add your first recipe to start calculating COGS.',
+                  ),
+                ],
+              )
+            : LayoutBuilder(
+                builder: (context, constraints) {
+                  final wide = constraints.maxWidth >= 600;
+                  return ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
+                    itemCount: wide
+                        ? (p.items.length / 2).ceil()
+                        : p.items.length,
+                    itemBuilder: (context, index) {
+                      if (!wide) {
+                        return Padding(
+                          padding: const EdgeInsets.only(bottom: 12),
+                          child: _RecipeCard(recipe: p.items[index]),
+                        );
+                      }
+                      final left = p.items[index * 2];
+                      final rightIdx = index * 2 + 1;
+                      final right = rightIdx < p.items.length
+                          ? p.items[rightIdx]
+                          : null;
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            Expanded(child: _RecipeCard(recipe: left)),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: right == null
+                                  ? const SizedBox()
+                                  : _RecipeCard(recipe: right),
                             ),
-                          );
-                        },
+                          ],
+                        ),
                       );
                     },
-                  ),
+                  );
+                },
+              ),
       ),
     );
   }
@@ -123,15 +158,19 @@ class _RecipeCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(recipe.name,
-                    style: TextStyle(
-                      color: c.textPrimary,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    )),
+                Text(
+                  recipe.name,
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    fontSize: 15,
+                  ),
+                ),
                 const SizedBox(height: 2),
-                Text('Batch: ${_qty(recipe.yieldQty)} ${recipe.yieldUnit}',
-                    style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                Text(
+                  'Batch: ${_qty(recipe.yieldQty)} ${recipe.yieldUnit}',
+                  style: TextStyle(color: c.textSecondary, fontSize: 12),
+                ),
               ],
             ),
           ),
@@ -158,5 +197,6 @@ class _RecipeCard extends StatelessWidget {
     return ((p.suggestedPrice! - p.hppPerUnit) / p.suggestedPrice!) * 100;
   }
 
-  String _qty(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();
+  String _qty(double q) =>
+      q == q.roundToDouble() ? q.toInt().toString() : q.toString();
 }
