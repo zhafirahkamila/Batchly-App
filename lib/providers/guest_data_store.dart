@@ -194,6 +194,7 @@ class GuestDataStore extends ChangeNotifier {
     required int recipeId,
     required double targetMarginPercent,
     required List<({int overheadCostId, int estimatedMonthlyProduction})> allocations,
+    double priceBufferPercent = 0,
   }) {
     final recipe = findRecipe(recipeId);
     if (recipe == null) throw StateError('recipe not found');
@@ -227,11 +228,14 @@ class GuestDataStore extends ChangeNotifier {
       ingredients: inputIngredients,
       overheadAllocations: overheadPairs,
       targetMarginPercent: targetMarginPercent,
+      priceBufferPercent: priceBufferPercent,
     ));
 
     _pricing[recipeId] = Pricing(
       recipeId: recipeId,
       hppPerUnit: breakdown.hppPerUnit,
+      priceBufferPercent: priceBufferPercent,
+      hppBeforeBuffer: breakdown.hppBeforeBuffer,
       targetMarginPercent: targetMarginPercent,
       suggestedPrice: breakdown.suggestedPrice,
       updatedAt: DateTime.now(),

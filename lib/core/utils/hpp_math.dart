@@ -33,12 +33,14 @@ class HppInputs {
   final List<({RecipeIngredient row, Ingredient ingredient})> ingredients;
   final List<({Overhead overhead, int estimatedMonthlyProduction})> overheadAllocations;
   final double targetMarginPercent;
+  final double priceBufferPercent;
 
   HppInputs({
     required this.recipe,
     required this.ingredients,
     required this.overheadAllocations,
     required this.targetMarginPercent,
+    this.priceBufferPercent = 0,
   });
 }
 
@@ -114,7 +116,12 @@ HppBreakdown computeHpp(HppInputs inputs) {
     );
   }
 
-  final hppPerUnit = ingredientCostPerUnit + totalOverheadPerUnit;
+  final hppBeforeBuffer = ingredientCostPerUnit + totalOverheadPerUnit;
+  // Buffer inflates HPP to anticipate ingredient price rises. Clamped to a
+  // sane upper bound; the input widget already limits this to 0..50.
+  final bufferFraction =
+      (inputs.priceBufferPercent.clamp(0, 500)) / 100.0;
+  final hppPerUnit = hppBeforeBuffer * (1 + bufferFraction);
   // Guard against margin=100 which would divide by zero. Backend validation
   // caps at 99.99 but the live preview slider is client-side.
   final marginFraction = (inputs.targetMarginPercent.clamp(0, 99.99)) / 100.0;
@@ -132,6 +139,8 @@ HppBreakdown computeHpp(HppInputs inputs) {
     ingredientCostPerUnit: ingredientCostPerUnit,
     totalOverheadPerUnit: totalOverheadPerUnit,
     hppPerUnit: hppPerUnit,
+    priceBufferPercent: inputs.priceBufferPercent.toDouble(),
+    hppBeforeBuffer: hppBeforeBuffer,
     suggestedPrice: suggestedPrice,
     profitPerUnit: profitPerUnit,
     calculatedAt: DateTime.now(),

@@ -20,6 +20,7 @@ class PricingProvider extends ChangeNotifier {
     required int recipeId,
     required double targetMarginPercent,
     required List<({int overheadCostId, int estimatedMonthlyProduction})> allocations,
+    double priceBufferPercent = 0,
   }) async {
     _calculating = true;
     _error = null;
@@ -29,6 +30,7 @@ class PricingProvider extends ChangeNotifier {
         recipeId: recipeId,
         targetMarginPercent: targetMarginPercent,
         allocations: allocations,
+        priceBufferPercent: priceBufferPercent,
       );
       return _last;
     } catch (e) {

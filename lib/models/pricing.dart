@@ -4,6 +4,8 @@ class Pricing {
   final double ingredientCostPerUnit;
   final double packagingCostPerUnit;
   final double overheadCostPerUnit;
+  final double priceBufferPercent;
+  final double hppBeforeBuffer;
   final double? targetMarginPercent;
   final double? suggestedPrice;
   final DateTime? updatedAt;
@@ -14,6 +16,8 @@ class Pricing {
     this.ingredientCostPerUnit = 0,
     this.packagingCostPerUnit = 0,
     this.overheadCostPerUnit = 0,
+    this.priceBufferPercent = 0,
+    this.hppBeforeBuffer = 0,
     this.targetMarginPercent,
     this.suggestedPrice,
     this.updatedAt,
@@ -30,6 +34,8 @@ class Pricing {
       ingredientCostPerUnit: _num(json['ingredient_cost_per_unit']),
       packagingCostPerUnit: _num(json['packaging_cost_per_unit']),
       overheadCostPerUnit: _num(json['overhead_cost_per_unit']),
+      priceBufferPercent: _num(json['price_buffer_percent']),
+      hppBeforeBuffer: _num(json['hpp_before_buffer']),
       targetMarginPercent: json['target_margin_percent'] == null
           ? null
           : _num(json['target_margin_percent']),

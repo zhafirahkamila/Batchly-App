@@ -55,6 +55,7 @@ class _PricingSheetState extends State<PricingSheet> {
   Recipe? _recipe;
   final List<_AllocEdit> _allocs = [];
   double _marginPercent = 30;
+  double _bufferPercent = 0;
   _PricingMode _mode = _PricingMode.margin;
   final _competitorPriceCtrl = TextEditingController();
   double? _competitorPrice;
@@ -82,6 +83,11 @@ class _PricingSheetState extends State<PricingSheet> {
         context.read<OverheadProvider>().refresh(),
       ]);
       final r = await context.read<RecipesProvider>().detail(widget.recipeId);
+      // Pre-fill target margin + buffer from the last saved pricing (if any)
+      // so re-opening the sheet feels like editing, not starting over.
+      final saved = await context
+          .read<PricingProvider>()
+          .fetchForRecipe(widget.recipeId);
       if (!mounted) return;
       final overheads = context.read<OverheadProvider>().items;
       setState(() {
@@ -89,6 +95,12 @@ class _PricingSheetState extends State<PricingSheet> {
         _allocs
           ..clear()
           ..addAll(overheads.map((o) => _AllocEdit(overhead: o)));
+        if (saved != null) {
+          if (saved.targetMarginPercent != null) {
+            _marginPercent = saved.targetMarginPercent!.clamp(0, 90).toDouble();
+          }
+          _bufferPercent = saved.priceBufferPercent.clamp(0, 50).toDouble();
+        }
       });
     } catch (e) {
       if (mounted) {
@@ -132,6 +144,7 @@ class _PricingSheetState extends State<PricingSheet> {
         ingredients: ingredients,
         overheadAllocations: allocs,
         targetMarginPercent: effectiveMargin,
+        priceBufferPercent: _bufferPercent,
       ));
     } catch (_) {
       return null;
@@ -154,11 +167,14 @@ class _PricingSheetState extends State<PricingSheet> {
     final price = _competitorPrice;
     if (price == null || price <= 0) return null;
     // Compute HPP with a placeholder margin so we can read hppPerUnit back.
+    // Buffer flows through here so the derived margin matches the same
+    // buffered HPP the backend will price against.
     final hppOnly = computeHpp(HppInputs(
       recipe: recipe,
       ingredients: ingredients,
       overheadAllocations: allocs,
       targetMarginPercent: 0,
+      priceBufferPercent: _bufferPercent,
     ));
     final hpp = hppOnly.hppPerUnit;
     if (!hpp.isFinite) return null;
@@ -209,6 +225,7 @@ class _PricingSheetState extends State<PricingSheet> {
           recipeId: _recipe!.id,
           targetMarginPercent: marginToSubmit,
           allocations: submitAllocs,
+          priceBufferPercent: _bufferPercent,
         );
     if (!mounted) return;
     if (result != null) {
@@ -371,6 +388,11 @@ class _PricingSheetState extends State<PricingSheet> {
             impliedMargin: _computeLivePreview()?.marginPercent,
             onChanged: (v) => setState(() => _competitorPrice = v),
           ),
+        const SizedBox(height: 10),
+        _BufferSlider(
+          bufferPercent: _bufferPercent,
+          onChanged: (v) => setState(() => _bufferPercent = v),
+        ),
       ],
     );
   }
@@ -592,6 +614,61 @@ class _MarginSlider extends StatelessWidget {
             divisions: 90,
             label: '${marginPercent.round()}%',
             onChanged: onChanged,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// Optional buffer % — inflates HPP to price against anticipated ingredient
+/// cost rises. 0 keeps behavior identical to pre-buffer calculations.
+class _BufferSlider extends StatelessWidget {
+  final double bufferPercent;
+  final ValueChanged<double> onChanged;
+
+  const _BufferSlider({required this.bufferPercent, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GlassCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Buffer kenaikan harga bahan (opsional)',
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              Text(
+                '${bufferPercent.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 4),
+          Slider(
+            value: bufferPercent,
+            min: 0,
+            max: 50,
+            divisions: 50,
+            label: '${bufferPercent.round()}%',
+            onChanged: onChanged,
+          ),
+          Text(
+            'Antisipasi kenaikan harga bahan baku sebelum kamu hitung ulang HPP.',
+            style: TextStyle(color: c.textSecondary, fontSize: 12),
           ),
         ],
       ),

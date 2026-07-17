@@ -680,11 +680,29 @@ class _PricingCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 const Divider(color: Colors.white24, height: 1),
                 const SizedBox(height: 8),
-                _BreakdownRow(
-                  label: 'HPP / $yieldUnit',
-                  value: p.hppPerUnit,
-                  emphasize: true,
-                ),
+                if (p.priceBufferPercent > 0) ...[
+                  _BreakdownRow(
+                    label: 'HPP sebelum buffer / $yieldUnit',
+                    value: p.hppBeforeBuffer,
+                  ),
+                  const SizedBox(height: 4),
+                  _BreakdownRow(
+                    label:
+                        'Buffer (+${_fmtBuffer(p.priceBufferPercent)}%)',
+                    value: p.hppPerUnit - p.hppBeforeBuffer,
+                  ),
+                  const SizedBox(height: 8),
+                  _BreakdownRow(
+                    label: 'HPP / $yieldUnit  ·  termasuk buffer',
+                    value: p.hppPerUnit,
+                    emphasize: true,
+                  ),
+                ] else
+                  _BreakdownRow(
+                    label: 'HPP / $yieldUnit',
+                    value: p.hppPerUnit,
+                    emphasize: true,
+                  ),
               ],
               const SizedBox(height: 16),
               const Text(
@@ -714,6 +732,9 @@ class _PricingCard extends StatelessWidget {
     );
   }
 }
+
+String _fmtBuffer(double p) =>
+    p == p.roundToDouble() ? p.toStringAsFixed(0) : p.toStringAsFixed(1);
 
 class _BreakdownRow extends StatelessWidget {
   final String label;

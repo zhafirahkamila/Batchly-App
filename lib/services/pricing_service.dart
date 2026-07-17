@@ -17,18 +17,21 @@ class PricingService {
     required int recipeId,
     required double targetMarginPercent,
     required List<({int overheadCostId, int estimatedMonthlyProduction})> allocations,
+    double priceBufferPercent = 0,
   }) async {
     if (_auth.isGuest) {
       return _guest.calculatePricing(
         recipeId: recipeId,
         targetMarginPercent: targetMarginPercent,
         allocations: allocations,
+        priceBufferPercent: priceBufferPercent,
       );
     }
     final res = await _api.post(
       Endpoints.recipeCalculate(recipeId),
       body: {
         'target_margin_percent': targetMarginPercent,
+        'price_buffer_percent': priceBufferPercent,
         'overhead_allocations': allocations
             .map((a) => {
                   'overhead_cost_id': a.overheadCostId,

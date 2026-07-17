@@ -12,6 +12,8 @@ class HppBreakdown {
   final double ingredientCostPerUnit;
   final double totalOverheadPerUnit;
   final double hppPerUnit;
+  final double priceBufferPercent;
+  final double hppBeforeBuffer;
   final double suggestedPrice;
   final double profitPerUnit;
   final DateTime? calculatedAt;
@@ -27,10 +29,12 @@ class HppBreakdown {
     required this.ingredientCostPerUnit,
     required this.totalOverheadPerUnit,
     required this.hppPerUnit,
+    this.priceBufferPercent = 0,
+    double? hppBeforeBuffer,
     required this.suggestedPrice,
     required this.profitPerUnit,
     this.calculatedAt,
-  });
+  }) : hppBeforeBuffer = hppBeforeBuffer ?? hppPerUnit;
 
   double get marginPercent {
     if (suggestedPrice <= 0) return 0;
@@ -55,6 +59,10 @@ class HppBreakdown {
       ingredientCostPerUnit: _num(json['ingredient_cost_per_unit']),
       totalOverheadPerUnit: _num(json['total_overhead_per_unit']),
       hppPerUnit: _num(json['hpp_per_unit']),
+      priceBufferPercent: _num(json['price_buffer_percent']),
+      hppBeforeBuffer: json['hpp_before_buffer'] == null
+          ? _num(json['hpp_per_unit'])
+          : _num(json['hpp_before_buffer']),
       suggestedPrice: _num(json['suggested_price']),
       profitPerUnit: _num(json['profit_per_unit']),
       calculatedAt: json['calculated_at'] == null
