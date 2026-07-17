@@ -7,6 +7,7 @@ import '../../core/utils/rupiah_formatter.dart';
 import '../../models/dashboard_item.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
+import '../../widgets/batchly_logo.dart';
 import '../../widgets/empty_state.dart';
 import '../../widgets/glass_card.dart';
 import '../../widgets/gradient_hero_card.dart';
@@ -49,7 +50,17 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard'),
+        titleSpacing: 12,
+        title: Row(
+          children: [
+            const BatchlyLogo(size: 28),
+            const SizedBox(width: 10),
+            Text(
+              'Dashboard',
+              style: TextStyle(color: c.textPrimary, fontSize: 17, fontWeight: FontWeight.w600),
+            ),
+          ],
+        ),
         actions: [
           IconButton(
             tooltip: 'Refresh',
@@ -61,50 +72,54 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
         child: ListView(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 24),
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 32),
           children: [
             GradientHeroCard(
-              padding: const EdgeInsets.all(24),
+              padding: const EdgeInsets.fromLTRB(24, 26, 24, 28),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text('Halo, $greetName 👋',
-                      style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w600)),
-                  const SizedBox(height: 4),
+                      style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.2)),
+                  const SizedBox(height: 6),
                   Text(auth.user?.businessName ?? 'Yuk cek margin usaha kamu.',
-                      style: const TextStyle(color: Colors.white70, fontSize: 13)),
-                  const SizedBox(height: 22),
+                      style: const TextStyle(color: Colors.white70, fontSize: 13.5)),
+                  const SizedBox(height: 26),
                   Row(
                     children: [
                       _HeroStat(label: 'Total Resep', value: '${items.length}'),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 28),
                       _HeroStat(
                         label: 'Rata-rata margin',
                         value: avgMargin == null
                             ? '-'
                             : '${avgMargin.toStringAsFixed(1)}%',
                       ),
-                      const SizedBox(width: 24),
+                      const SizedBox(width: 28),
                       _HeroStat(label: 'Perlu perhatian', value: '$warningCount'),
                     ],
                   ),
                 ],
               ),
             ),
-            const SizedBox(height: 18),
-            Row(
-              children: [
-                Text('Produk',
-                    style: TextStyle(
-                      color: c.textPrimary,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                    )),
-                const Spacer(),
-                _SortMenu(current: p.sort, onChanged: p.setSort),
-              ],
+            const SizedBox(height: 28),
+            Padding(
+              padding: const EdgeInsets.only(left: 2),
+              child: Row(
+                children: [
+                  Text('Produk',
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontSize: 17,
+                        fontWeight: FontWeight.w700,
+                        letterSpacing: -0.2,
+                      )),
+                  const Spacer(),
+                  _SortMenu(current: p.sort, onChanged: p.setSort),
+                ],
+              ),
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 14),
             if (p.loading && items.isEmpty)
               const Padding(
                 padding: EdgeInsets.symmetric(vertical: 40),
@@ -128,23 +143,39 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 builder: (context, constraints) {
                   final wide = constraints.maxWidth >= 600;
                   if (wide) {
-                    return GridView.count(
-                      crossAxisCount: 2,
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 1.9,
+                    // Asymmetric tablet layout: the first (lowest-margin, most
+                    // attention-worthy) card spans full width, subsequent
+                    // cards fall into a 2-column grid.
+                    final spotlight = items.first;
+                    final rest = items.skip(1).toList();
+                    return Column(
                       children: [
-                        for (final item in items) _DashboardCard(item: item),
+                        _DashboardCard(item: spotlight, featured: true),
+                        if (rest.isNotEmpty) const SizedBox(height: 14),
+                        if (rest.isNotEmpty)
+                          GridView.count(
+                            crossAxisCount: 2,
+                            shrinkWrap: true,
+                            physics: const NeverScrollableScrollPhysics(),
+                            crossAxisSpacing: 12,
+                            mainAxisSpacing: 12,
+                            childAspectRatio: 1.9,
+                            children: [
+                              for (final item in rest) _DashboardCard(item: item),
+                            ],
+                          ),
                       ],
                     );
                   }
+                  // Mobile: single column with a slightly bolder first card
+                  // and varied spacing so it doesn't read as a rigid grid.
+                  const spacings = [14.0, 10.0, 12.0, 8.0];
                   return Column(
                     children: [
-                      for (final item in items) ...[
-                        _DashboardCard(item: item),
-                        const SizedBox(height: 10),
+                      for (var idx = 0; idx < items.length; idx++) ...[
+                        _DashboardCard(item: items[idx], featured: idx == 0),
+                        if (idx < items.length - 1)
+                          SizedBox(height: spacings[idx % spacings.length]),
                       ],
                     ],
                   );
@@ -215,12 +246,16 @@ class _SortMenu extends StatelessWidget {
 
 class _DashboardCard extends StatelessWidget {
   final DashboardItem item;
-  const _DashboardCard({required this.item});
+  final bool featured;
+  const _DashboardCard({required this.item, this.featured = false});
 
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     return GlassCard(
+      padding: featured
+          ? const EdgeInsets.fromLTRB(18, 18, 18, 20)
+          : const EdgeInsets.all(16),
       onTap: () => context.push('/recipes/${item.recipeId}'),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,13 +267,14 @@ class _DashboardCard extends StatelessWidget {
                     style: TextStyle(
                       color: c.textPrimary,
                       fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                      fontSize: featured ? 17 : 15,
+                      letterSpacing: -0.2,
                     )),
               ),
-              MarginBadge(marginPercent: item.marginPercent, compact: true),
+              MarginBadge(marginPercent: item.marginPercent, compact: !featured),
             ],
           ),
-          const SizedBox(height: 8),
+          SizedBox(height: featured ? 12 : 8),
           Row(
             children: [
               _MiniCol(label: 'HPP', value: formatRupiah(item.hppPerUnit)),

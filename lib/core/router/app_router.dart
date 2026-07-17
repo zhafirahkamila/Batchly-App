@@ -41,51 +41,80 @@ GoRouter buildRouter(AuthProvider auth) {
       }
     },
     routes: [
-      GoRoute(path: '/splash', builder: (_, __) => const SplashGate()),
-      GoRoute(path: '/login', builder: (_, __) => const LoginScreen()),
-      GoRoute(path: '/register', builder: (_, __) => const RegisterScreen()),
+      GoRoute(
+        path: '/splash',
+        // No transition on splash: it hard-redirects away as soon as auth
+        // bootstraps; a fade would just add flicker.
+        builder: (_, _) => const SplashGate(),
+      ),
+      GoRoute(
+        path: '/login',
+        pageBuilder: (ctx, s) => _fadePage(s, const LoginScreen()),
+      ),
+      GoRoute(
+        path: '/register',
+        pageBuilder: (ctx, s) => _fadePage(s, const RegisterScreen()),
+      ),
       ShellRoute(
         builder: (context, state, child) =>
             RootShell(currentPath: state.matchedLocation, child: child),
         routes: [
-          GoRoute(path: '/', builder: (_, __) => const DashboardScreen()),
+          GoRoute(
+            path: '/',
+            pageBuilder: (ctx, s) => _fadePage(s, const DashboardScreen()),
+          ),
           GoRoute(
             path: '/ingredients',
-            builder: (_, __) => const IngredientsListScreen(),
+            pageBuilder: (ctx, s) => _fadePage(s, const IngredientsListScreen()),
             routes: [
               GoRoute(
                 path: 'new',
-                builder: (_, __) => const IngredientFormScreen(),
+                pageBuilder: (ctx, s) => _fadePage(s, const IngredientFormScreen()),
               ),
               GoRoute(
                 path: ':id/edit',
-                builder: (_, s) => IngredientFormScreen(
-                  ingredientId: int.parse(s.pathParameters['id']!),
+                pageBuilder: (ctx, s) => _fadePage(
+                  s,
+                  IngredientFormScreen(
+                    ingredientId: int.parse(s.pathParameters['id']!),
+                  ),
                 ),
               ),
             ],
           ),
           GoRoute(
             path: '/recipes',
-            builder: (_, __) => const RecipesListScreen(),
+            pageBuilder: (ctx, s) => _fadePage(s, const RecipesListScreen()),
             routes: [
-              GoRoute(path: 'new', builder: (_, __) => const RecipeFormScreen()),
+              GoRoute(
+                path: 'new',
+                pageBuilder: (ctx, s) => _fadePage(s, const RecipeFormScreen()),
+              ),
               GoRoute(
                 path: ':id',
-                builder: (_, s) => RecipeDetailScreen(
-                  recipeId: int.parse(s.pathParameters['id']!),
+                pageBuilder: (ctx, s) => _fadePage(
+                  s,
+                  RecipeDetailScreen(
+                    recipeId: int.parse(s.pathParameters['id']!),
+                  ),
                 ),
                 routes: [
                   GoRoute(
                     path: 'edit',
-                    builder: (_, s) => RecipeFormScreen(
-                      recipeId: int.parse(s.pathParameters['id']!),
+                    pageBuilder: (ctx, s) => _fadePage(
+                      s,
+                      RecipeFormScreen(
+                        recipeId: int.parse(s.pathParameters['id']!),
+                      ),
                     ),
                   ),
                   GoRoute(
                     path: 'pricing',
-                    builder: (_, s) => PricingSheet(
-                      recipeId: int.parse(s.pathParameters['id']!),
+                    pageBuilder: (ctx, s) => _fadePage(
+                      s,
+                      PricingSheet(
+                        recipeId: int.parse(s.pathParameters['id']!),
+                      ),
                     ),
                   ),
                 ],
@@ -94,24 +123,27 @@ GoRouter buildRouter(AuthProvider auth) {
           ),
           GoRoute(
             path: '/chatbot',
-            builder: (_, __) => const ChatbotPlaceholderScreen(),
+            pageBuilder: (ctx, s) => _fadePage(s, const ChatbotPlaceholderScreen()),
           ),
           GoRoute(
             path: '/profile',
-            builder: (_, __) => const ProfileScreen(),
+            pageBuilder: (ctx, s) => _fadePage(s, const ProfileScreen()),
             routes: [
               GoRoute(
                 path: 'overhead',
-                builder: (_, __) => const OverheadListScreen(),
+                pageBuilder: (ctx, s) => _fadePage(s, const OverheadListScreen()),
                 routes: [
                   GoRoute(
                     path: 'new',
-                    builder: (_, __) => const OverheadFormScreen(),
+                    pageBuilder: (ctx, s) => _fadePage(s, const OverheadFormScreen()),
                   ),
                   GoRoute(
                     path: ':id/edit',
-                    builder: (_, s) => OverheadFormScreen(
-                      overheadId: int.parse(s.pathParameters['id']!),
+                    pageBuilder: (ctx, s) => _fadePage(
+                      s,
+                      OverheadFormScreen(
+                        overheadId: int.parse(s.pathParameters['id']!),
+                      ),
                     ),
                   ),
                 ],
@@ -131,5 +163,27 @@ GoRouter buildRouter(AuthProvider auth) {
       appBar: AppBar(title: const Text('404')),
       body: Center(child: Text('Halaman tidak ditemukan: ${state.uri}')),
     ),
+  );
+}
+
+CustomTransitionPage<T> _fadePage<T>(GoRouterState state, Widget child) {
+  return CustomTransitionPage<T>(
+    key: state.pageKey,
+    child: child,
+    transitionDuration: const Duration(milliseconds: 220),
+    reverseTransitionDuration: const Duration(milliseconds: 180),
+    transitionsBuilder: (context, animation, secondary, child) {
+      final curved = CurvedAnimation(parent: animation, curve: Curves.easeOutCubic);
+      return FadeTransition(
+        opacity: curved,
+        child: SlideTransition(
+          position: Tween<Offset>(
+            begin: const Offset(0, 0.015),
+            end: Offset.zero,
+          ).animate(curved),
+          child: child,
+        ),
+      );
+    },
   );
 }

@@ -9,6 +9,7 @@ import '../models/overhead.dart';
 import '../models/pricing.dart';
 import '../models/recipe.dart';
 import '../models/recipe_ingredient.dart';
+import '../services/guest_sample_data.dart';
 
 /// In-memory dataset used when the user chose "Lanjut sebagai Tamu". Mirrors
 /// the backend's data model closely enough that services can swap between
@@ -19,7 +20,7 @@ import '../models/recipe_ingredient.dart';
 /// if they want durability.
 class GuestDataStore extends ChangeNotifier {
   GuestDataStore() {
-    _seed();
+    seedGuestData(this);
   }
 
   final List<Ingredient> _ingredients = [];
@@ -271,71 +272,4 @@ class GuestDataStore extends ChangeNotifier {
     return items;
   }
 
-  // ---- Seed ----------------------------------------------------------------
-  void _seed() {
-    // Ingredients (realistic Indonesian home-baker basics)
-    final tepung = addIngredient(
-        name: 'Tepung Terigu', purchasePrice: 12000, purchaseQty: 1, purchaseUnit: 'kg', category: 'Kering');
-    final gula = addIngredient(
-        name: 'Gula Pasir', purchasePrice: 15000, purchaseQty: 1, purchaseUnit: 'kg', category: 'Kering');
-    final mentega = addIngredient(
-        name: 'Mentega', purchasePrice: 45000, purchaseQty: 500, purchaseUnit: 'gram', category: 'Kering');
-    final telur = addIngredient(
-        name: 'Telur', purchasePrice: 28000, purchaseQty: 10, purchaseUnit: 'pcs', category: 'Segar');
-    final coklat = addIngredient(
-        name: 'Coklat Bubuk', purchasePrice: 35000, purchaseQty: 250, purchaseUnit: 'gram', category: 'Kering');
-    addIngredient(
-        name: 'Susu UHT', purchasePrice: 18000, purchaseQty: 1, purchaseUnit: 'liter', category: 'Segar');
-
-    // Overhead
-    final gas = addOverhead(name: 'Gas LPG 3kg', amount: 150000, period: 'per_bulan');
-    final listrik = addOverhead(name: 'Listrik Dapur', amount: 200000, period: 'per_bulan');
-    final kemasan = addOverhead(name: 'Kemasan', amount: 500, period: 'per_batch');
-
-    // Recipes
-    final brownies = addRecipe(
-      name: 'Brownies Panggang',
-      yieldQty: 12,
-      yieldUnit: 'pcs',
-      ingredients: [
-        RecipeIngredient(ingredientId: tepung.id, qtyUsed: 250, unit: 'gram'),
-        RecipeIngredient(ingredientId: gula.id, qtyUsed: 200, unit: 'gram'),
-        RecipeIngredient(ingredientId: mentega.id, qtyUsed: 200, unit: 'gram'),
-        RecipeIngredient(ingredientId: telur.id, qtyUsed: 3, unit: 'pcs'),
-        RecipeIngredient(ingredientId: coklat.id, qtyUsed: 80, unit: 'gram'),
-      ],
-    );
-
-    final cookies = addRecipe(
-      name: 'Chocochip Cookies',
-      yieldQty: 20,
-      yieldUnit: 'pcs',
-      ingredients: [
-        RecipeIngredient(ingredientId: tepung.id, qtyUsed: 300, unit: 'gram'),
-        RecipeIngredient(ingredientId: gula.id, qtyUsed: 180, unit: 'gram'),
-        RecipeIngredient(ingredientId: mentega.id, qtyUsed: 150, unit: 'gram'),
-        RecipeIngredient(ingredientId: telur.id, qtyUsed: 2, unit: 'pcs'),
-        RecipeIngredient(ingredientId: coklat.id, qtyUsed: 60, unit: 'gram'),
-      ],
-    );
-
-    // Pre-computed pricing so the guest sees a populated dashboard immediately.
-    calculatePricing(
-      recipeId: brownies.id,
-      targetMarginPercent: 40,
-      allocations: [
-        (overheadCostId: gas.id, estimatedMonthlyProduction: 60),
-        (overheadCostId: listrik.id, estimatedMonthlyProduction: 60),
-        (overheadCostId: kemasan.id, estimatedMonthlyProduction: 60),
-      ],
-    );
-    calculatePricing(
-      recipeId: cookies.id,
-      targetMarginPercent: 35,
-      allocations: [
-        (overheadCostId: gas.id, estimatedMonthlyProduction: 80),
-        (overheadCostId: kemasan.id, estimatedMonthlyProduction: 80),
-      ],
-    );
-  }
 }

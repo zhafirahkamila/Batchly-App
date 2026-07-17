@@ -21,11 +21,11 @@ class _RootShellState extends State<RootShell> {
   bool _bannerDismissed = false;
 
   static const _tabs = [
-    ('/', Icons.dashboard_rounded, 'Dashboard'),
-    ('/ingredients', Icons.egg_alt_outlined, 'Bahan Baku'),
-    ('/recipes', Icons.receipt_long_rounded, 'Resep'),
+    ('/', Icons.dashboard_rounded, 'Home'),
+    ('/ingredients', Icons.egg_alt_outlined, 'Pantry'),
+    ('/recipes', Icons.receipt_long_rounded, 'Recipe'),
     ('/chatbot', Icons.smart_toy_outlined, 'Chatbot'),
-    ('/profile', Icons.person_outline, 'Profil'),
+    ('/profile', Icons.person_outline, 'Profile'),
   ];
 
   int _indexForPath(String path) {
@@ -54,7 +54,10 @@ class _RootShellState extends State<RootShell> {
     return Scaffold(
       body: Column(
         children: [
-          if (showBanner) _GuestBanner(onDismiss: () => setState(() => _bannerDismissed = true)),
+          if (showBanner)
+            _GuestBanner(
+              onDismiss: () => setState(() => _bannerDismissed = true),
+            ),
           Expanded(child: widget.child),
         ],
       ),

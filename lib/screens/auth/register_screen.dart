@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/batchly_logo.dart';
 import '../../widgets/primary_button.dart';
 
 class RegisterScreen extends StatefulWidget {
@@ -66,6 +67,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
+                    const Align(
+                      alignment: Alignment.centerLeft,
+                      child: BatchlyLogo(size: 56),
+                    ),
+                    const SizedBox(height: 18),
                     Text('Buat akun Batchly',
                         style: TextStyle(
                           color: c.textPrimary,
@@ -75,7 +81,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     const SizedBox(height: 4),
                     Text('Simpan resep, bahan baku, dan hitung HPP kapan saja.',
                         style: TextStyle(color: c.textSecondary, fontSize: 14)),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 22),
                     TextFormField(
                       controller: _nameCtrl,
                       decoration: const InputDecoration(labelText: 'Nama'),

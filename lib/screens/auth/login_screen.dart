@@ -3,8 +3,8 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/gradients.dart';
 import '../../providers/auth_provider.dart';
+import '../../widgets/batchly_logo.dart';
 import '../../widgets/primary_button.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -60,27 +60,8 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Row(
-                      children: [
-                        Container(
-                          width: 44,
-                          height: 44,
-                          decoration: BoxDecoration(
-                            gradient: AppGradients.accent(c),
-                            borderRadius: BorderRadius.circular(14),
-                          ),
-                          child: const Icon(Icons.blender, color: Colors.white, size: 22),
-                        ),
-                        const SizedBox(width: 12),
-                        Text('Batchly',
-                            style: TextStyle(
-                              color: c.textPrimary,
-                              fontSize: 22,
-                              fontWeight: FontWeight.w700,
-                            )),
-                      ],
-                    ),
-                    const SizedBox(height: 28),
+                    const BatchlyLogo(size: 72, showWordmark: true),
+                    const SizedBox(height: 32),
                     Text('Selamat datang kembali',
                         style: TextStyle(
                           color: c.textPrimary,

@@ -28,6 +28,83 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
     });
   }
 
+  Future<bool> _confirmDelete(Ingredient ing) async {
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Hapus bahan?'),
+        content: Text(
+          '"${ing.name}" akan dihapus dari daftar dan tidak lagi dapat dipakai di resep.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Batal'),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(
+              backgroundColor: AppColors.of(ctx).marginDangerText,
+            ),
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Hapus'),
+          ),
+        ],
+      ),
+    );
+    return ok ?? false;
+  }
+
+  Future<void> _performDelete(Ingredient ing) async {
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await context.read<IngredientsProvider>().delete(ing.id);
+      messenger.showSnackBar(
+        SnackBar(content: Text('${ing.name} dihapus')),
+      );
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Gagal menghapus: $e')),
+      );
+    }
+  }
+
+  Future<void> _showTabletDeleteSheet(Ingredient ing) async {
+    final choice = await showModalBottomSheet<String>(
+      context: context,
+      showDragHandle: true,
+      builder: (ctx) {
+        final c = AppColors.of(ctx);
+        return SafeArea(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.edit_outlined, color: c.textPrimary),
+                title: const Text('Edit'),
+                onTap: () => Navigator.of(ctx).pop('edit'),
+              ),
+              ListTile(
+                leading: Icon(Icons.delete_outline, color: c.marginDangerText),
+                title: Text('Hapus', style: TextStyle(color: c.marginDangerText)),
+                onTap: () => Navigator.of(ctx).pop('delete'),
+              ),
+              const SizedBox(height: 8),
+            ],
+          ),
+        );
+      },
+    );
+    if (!mounted) return;
+    if (choice == 'edit') {
+      context.push('/ingredients/${ing.id}/edit');
+    } else if (choice == 'delete') {
+      if (await _confirmDelete(ing)) {
+        if (!mounted) return;
+        await _performDelete(ing);
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
@@ -57,7 +134,7 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                     ),
                     onChanged: (v) => setState(() => _query = v),
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 14),
                   if (filtered.isEmpty)
                     Padding(
                       padding: const EdgeInsets.only(top: 60),
@@ -83,15 +160,28 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                             childAspectRatio: 2.6,
                             children: [
                               for (final i in filtered)
-                                _IngredientTile(ingredient: i, colors: c),
+                                _IngredientTile(
+                                  ingredient: i,
+                                  colors: c,
+                                  onLongPress: () => _showTabletDeleteSheet(i),
+                                ),
                             ],
                           );
                         }
+                        // Mobile: swipe-left to delete. Slightly varied vertical
+                        // rhythm so the list doesn't read as a rigid grid.
+                        const gaps = [10.0, 12.0, 8.0, 11.0];
                         return Column(
                           children: [
-                            for (final i in filtered) ...[
-                              _IngredientTile(ingredient: i, colors: c),
-                              const SizedBox(height: 10),
+                            for (var idx = 0; idx < filtered.length; idx++) ...[
+                              _DismissibleTile(
+                                ingredient: filtered[idx],
+                                colors: c,
+                                onConfirm: () => _confirmDelete(filtered[idx]),
+                                onDismissed: () => _performDelete(filtered[idx]),
+                              ),
+                              if (idx < filtered.length - 1)
+                                SizedBox(height: gaps[idx % gaps.length]),
                             ],
                           ],
                         );
@@ -104,10 +194,62 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
   }
 }
 
+class _DismissibleTile extends StatelessWidget {
+  final Ingredient ingredient;
+  final AppColors colors;
+  final Future<bool> Function() onConfirm;
+  final Future<void> Function() onDismissed;
+
+  const _DismissibleTile({
+    required this.ingredient,
+    required this.colors,
+    required this.onConfirm,
+    required this.onDismissed,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final radius = BorderRadius.circular(18);
+    return Dismissible(
+      key: ValueKey('ingredient-${ingredient.id}'),
+      direction: DismissDirection.endToStart,
+      background: const SizedBox.shrink(),
+      secondaryBackground: Container(
+        alignment: Alignment.centerRight,
+        padding: const EdgeInsets.symmetric(horizontal: 22),
+        decoration: BoxDecoration(
+          color: colors.marginDangerText,
+          borderRadius: radius,
+        ),
+        child: const Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.delete_outline, color: Colors.white, size: 22),
+            SizedBox(width: 6),
+            Text('Hapus',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                )),
+          ],
+        ),
+      ),
+      confirmDismiss: (_) => onConfirm(),
+      onDismissed: (_) => onDismissed(),
+      child: _IngredientTile(ingredient: ingredient, colors: colors),
+    );
+  }
+}
+
 class _IngredientTile extends StatelessWidget {
   final Ingredient ingredient;
   final AppColors colors;
-  const _IngredientTile({required this.ingredient, required this.colors});
+  final VoidCallback? onLongPress;
+  const _IngredientTile({
+    required this.ingredient,
+    required this.colors,
+    this.onLongPress,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -122,6 +264,7 @@ class _IngredientTile extends StatelessWidget {
     return GlassCard(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       onTap: () => context.push('/ingredients/${ingredient.id}/edit'),
+      onLongPress: onLongPress,
       child: Row(
         children: [
           Container(
