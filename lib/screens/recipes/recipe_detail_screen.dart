@@ -1,12 +1,17 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/gradients.dart';
+import '../../core/utils/ingredient_categories.dart';
 import '../../core/utils/rupiah_formatter.dart';
 import '../../models/pricing.dart';
 import '../../models/recipe.dart';
+import '../../models/recipe_ingredient.dart';
+import '../../providers/ingredients_provider.dart';
 import '../../providers/pricing_provider.dart';
 import '../../providers/recipes_provider.dart';
 import '../../widgets/animated_number.dart';
@@ -54,6 +59,15 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       _pricingError = false;
       _pricingLoading = true;
     });
+
+    // Kick off an ingredients refresh in the background if this is the
+    // user's first entry point — the detail screen groups rows by category,
+    // which requires IngredientsProvider.byId() to resolve.
+    final ingProv = context.read<IngredientsProvider>();
+    if (ingProv.items.isEmpty) {
+      // Fire-and-forget: missing lookups fall back to Bahan Baku.
+      unawaited(ingProv.refresh());
+    }
 
     // Phase 1 — recipe. Render as soon as this resolves; do NOT wait on
     // pricing. Blocking on pricing was the original bug: a slow /pricing
@@ -264,11 +278,26 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       );
     }
 
-    final totalIngredientCost = r.ingredients.fold<double>(
-      0,
-      (sum, ri) => sum + (ri.lineCost ?? 0),
-    );
+    final ingProv = context.watch<IngredientsProvider>();
+    bool isPackaging(RecipeIngredient ri) =>
+        ingProv.byId(ri.ingredientId)?.category == kPackagingCategory;
+
+    final bahanBaku = <RecipeIngredient>[];
+    final kemasan = <RecipeIngredient>[];
+    for (final ri in r.ingredients) {
+      (isPackaging(ri) ? kemasan : bahanBaku).add(ri);
+    }
+    double subtotalOf(List<RecipeIngredient> xs) =>
+        xs.fold<double>(0, (s, ri) => s + (ri.lineCost ?? 0));
+
+    final bahanBakuSubtotal = subtotalOf(bahanBaku);
+    final kemasanSubtotal = subtotalOf(kemasan);
+    final totalIngredientCost = bahanBakuSubtotal + kemasanSubtotal;
     final costPerUnit = r.yieldQty > 0 ? totalIngredientCost / r.yieldQty : 0.0;
+    final bahanBakuPerUnit =
+        r.yieldQty > 0 ? bahanBakuSubtotal / r.yieldQty : 0.0;
+    final kemasanPerUnit =
+        r.yieldQty > 0 ? kemasanSubtotal / r.yieldQty : 0.0;
     final hasPricing = _pricing != null && _pricing!.suggestedPrice != null;
 
     return RefreshIndicator(
@@ -327,6 +356,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               pricing: _pricing,
               yieldUnit: r.yieldUnit,
               ingredientCostPerUnit: costPerUnit,
+              previewBahanBakuPerUnit: bahanBakuPerUnit,
+              previewKemasanPerUnit: kemasanPerUnit,
               fetchFailed: _pricingError,
             ),
           if (hasPricing) ...[
@@ -379,47 +410,43 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ],
               ),
             )
-          else
-            for (final ri in r.ingredients) ...[
+          else ...[
+            _IngredientGroupHeader(label: 'Bahan Baku'),
+            for (final ri in bahanBaku) ...[
+              _IngredientRow(ri: ri, fmt: _fmt),
+              const SizedBox(height: 8),
+            ],
+            _GroupSubtotal(label: 'Subtotal Bahan Baku', value: bahanBakuSubtotal),
+            const SizedBox(height: 18),
+            _IngredientGroupHeader(label: 'Kemasan'),
+            if (kemasan.isEmpty)
               GlassCard(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
                 child: Row(
                   children: [
+                    Icon(Icons.inventory_2_outlined, color: c.textSecondary),
+                    const SizedBox(width: 12),
                     Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            ri.name ?? 'Ingredient #${ri.ingredientId}',
-                            style: TextStyle(
-                              color: c.textPrimary,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            '${_fmt(ri.qtyUsed)} ${ri.unit}',
-                            style: TextStyle(
-                              color: c.textSecondary,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Text(
-                      ri.lineCost == null ? '-' : formatRupiah(ri.lineCost),
-                      style: TextStyle(
-                        color: c.textPrimary,
-                        fontWeight: FontWeight.w600,
+                      child: Text(
+                        'Belum ada kemasan ditambahkan',
+                        style: TextStyle(
+                          color: c.textSecondary,
+                          fontSize: 13,
+                        ),
                       ),
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
+              )
+            else ...[
+              for (final ri in kemasan) ...[
+                _IngredientRow(ri: ri, fmt: _fmt),
+                const SizedBox(height: 8),
+              ],
+              _GroupSubtotal(label: 'Subtotal Kemasan', value: kemasanSubtotal),
             ],
+          ],
           const SizedBox(height: 24),
         ],
       ),
@@ -475,12 +502,16 @@ class _PricingCard extends StatelessWidget {
   final Pricing? pricing;
   final String yieldUnit;
   final double ingredientCostPerUnit;
+  final double previewBahanBakuPerUnit;
+  final double previewKemasanPerUnit;
   final bool fetchFailed;
 
   const _PricingCard({
     required this.pricing,
     required this.yieldUnit,
     required this.ingredientCostPerUnit,
+    required this.previewBahanBakuPerUnit,
+    required this.previewKemasanPerUnit,
     required this.fetchFailed,
   });
 
@@ -507,6 +538,7 @@ class _PricingCard extends StatelessWidget {
     }
 
     if (p == null || p.suggestedPrice == null) {
+      final hasPackaging = previewKemasanPerUnit > 0;
       return GlassCard(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -526,21 +558,50 @@ class _PricingCard extends StatelessWidget {
               ],
             ),
             const SizedBox(height: 10),
-            Text.rich(
-              TextSpan(
-                style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.4),
-                children: [
-                  const TextSpan(text: 'Ingredient cost only: '),
-                  TextSpan(
-                    text: '${formatRupiah(ingredientCostPerUnit)} / $yieldUnit',
-                    style: TextStyle(
-                      color: c.textPrimary,
-                      fontWeight: FontWeight.w600,
+            if (hasPackaging)
+              Text.rich(
+                TextSpan(
+                  style: TextStyle(
+                      color: c.textSecondary, fontSize: 13, height: 1.4),
+                  children: [
+                    const TextSpan(text: 'Bahan baku: '),
+                    TextSpan(
+                      text: formatRupiah(previewBahanBakuPerUnit),
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                ],
+                    const TextSpan(text: '  ·  Kemasan: '),
+                    TextSpan(
+                      text: formatRupiah(previewKemasanPerUnit),
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    TextSpan(text: ' / $yieldUnit'),
+                  ],
+                ),
+              )
+            else
+              Text.rich(
+                TextSpan(
+                  style: TextStyle(
+                      color: c.textSecondary, fontSize: 13, height: 1.4),
+                  children: [
+                    const TextSpan(text: 'Ingredient cost only: '),
+                    TextSpan(
+                      text:
+                          '${formatRupiah(ingredientCostPerUnit)} / $yieldUnit',
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
             const SizedBox(height: 4),
             Text(
               'Add overhead + margin to see full HPP and selling price.',
@@ -555,6 +616,13 @@ class _PricingCard extends StatelessWidget {
         ? ((p.suggestedPrice! - p.hppPerUnit) / p.suggestedPrice!) * 100
         : 0.0;
     final profit = p.suggestedPrice! - p.hppPerUnit;
+    // A pricing row written before the backend started returning the
+    // component breakdown: hpp+price are real, but the three per-unit fields
+    // are zeroed out. Show a nudge instead of a misleading Rp 0 breakdown.
+    final stale = p.ingredientCostPerUnit == 0 &&
+        p.packagingCostPerUnit == 0 &&
+        p.overheadCostPerUnit == 0 &&
+        p.hppPerUnit > 0;
 
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
@@ -568,12 +636,60 @@ class _PricingCard extends StatelessWidget {
               Row(
                 children: [
                   const Text(
-                    'Selling price per unit',
+                    'Cost breakdown',
                     style: TextStyle(color: Colors.white70),
                   ),
                   const Spacer(),
                   MarginBadge(marginPercent: margin, compact: true),
                 ],
+              ),
+              const SizedBox(height: 10),
+              if (stale)
+                Row(
+                  children: [
+                    const Icon(Icons.info_outline,
+                        color: Colors.white70, size: 16),
+                    const SizedBox(width: 8),
+                    const Expanded(
+                      child: Text(
+                        'Breakdown belum tersedia — tekan Update Pricing untuk memperbarui',
+                        style: TextStyle(
+                          color: Colors.white70,
+                          fontSize: 12.5,
+                          height: 1.35,
+                        ),
+                      ),
+                    ),
+                  ],
+                )
+              else ...[
+                _BreakdownRow(
+                  label: 'Bahan Baku / $yieldUnit',
+                  value: p.ingredientCostPerUnit,
+                ),
+                const SizedBox(height: 4),
+                _BreakdownRow(
+                  label: 'Kemasan / $yieldUnit',
+                  value: p.packagingCostPerUnit,
+                ),
+                const SizedBox(height: 4),
+                _BreakdownRow(
+                  label: 'Overhead / $yieldUnit',
+                  value: p.overheadCostPerUnit,
+                ),
+                const SizedBox(height: 8),
+                const Divider(color: Colors.white24, height: 1),
+                const SizedBox(height: 8),
+                _BreakdownRow(
+                  label: 'HPP / $yieldUnit',
+                  value: p.hppPerUnit,
+                  emphasize: true,
+                ),
+              ],
+              const SizedBox(height: 16),
+              const Text(
+                'Selling price per unit',
+                style: TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 6),
               AnimatedNumber(
@@ -587,26 +703,149 @@ class _PricingCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              Row(
-                children: [
-                  Expanded(
-                    child: _MiniStat(
-                      label: 'COGS / $yieldUnit',
-                      value: p.hppPerUnit,
-                    ),
-                  ),
-                  const SizedBox(width: 24),
-                  Expanded(
-                    child: _MiniStat(
-                      label: 'Profit / $yieldUnit',
-                      value: profit,
-                    ),
-                  ),
-                ],
+              _MiniStat(
+                label: 'Profit / $yieldUnit',
+                value: profit,
               ),
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _BreakdownRow extends StatelessWidget {
+  final String label;
+  final double value;
+  final bool emphasize;
+  const _BreakdownRow({
+    required this.label,
+    required this.value,
+    this.emphasize = false,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final labelStyle = TextStyle(
+      color: emphasize ? Colors.white : Colors.white70,
+      fontSize: emphasize ? 13 : 12.5,
+      fontWeight: emphasize ? FontWeight.w700 : FontWeight.w500,
+    );
+    final valueStyle = TextStyle(
+      color: Colors.white,
+      fontSize: emphasize ? 16 : 13,
+      fontWeight: emphasize ? FontWeight.w800 : FontWeight.w600,
+    );
+    return Row(
+      children: [
+        Expanded(child: Text(label, style: labelStyle)),
+        Text(formatRupiah(value), style: valueStyle),
+      ],
+    );
+  }
+}
+
+class _IngredientGroupHeader extends StatelessWidget {
+  final String label;
+  const _IngredientGroupHeader({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 8, top: 2),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: c.textSecondary,
+          fontSize: 12.5,
+          fontWeight: FontWeight.w700,
+          letterSpacing: 0.4,
+        ),
+      ),
+    );
+  }
+}
+
+class _GroupSubtotal extends StatelessWidget {
+  final String label;
+  final double value;
+  const _GroupSubtotal({required this.label, required this.value});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return Padding(
+      padding: const EdgeInsets.only(right: 4, top: 2),
+      child: Row(
+        children: [
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: c.textSecondary,
+                fontSize: 12.5,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          Text(
+            formatRupiah(value),
+            style: TextStyle(
+              color: c.textPrimary,
+              fontSize: 13,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _IngredientRow extends StatelessWidget {
+  final RecipeIngredient ri;
+  final String Function(double) fmt;
+  const _IngredientRow({required this.ri, required this.fmt});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return GlassCard(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  ri.name ?? 'Ingredient #${ri.ingredientId}',
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${fmt(ri.qtyUsed)} ${ri.unit}',
+                  style: TextStyle(
+                    color: c.textSecondary,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            ri.lineCost == null ? '-' : formatRupiah(ri.lineCost),
+            style: TextStyle(
+              color: c.textPrimary,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }

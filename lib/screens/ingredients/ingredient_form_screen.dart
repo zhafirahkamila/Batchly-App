@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
+import '../../core/utils/ingredient_categories.dart';
 import '../../core/utils/rupiah_formatter.dart';
 import '../../core/utils/units.dart';
 import '../../providers/ingredients_provider.dart';
@@ -23,7 +24,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nameCtrl = TextEditingController();
   final _qtyCtrl = TextEditingController();
-  final _categoryCtrl = TextEditingController();
+  String? _category;
   int? _price;
   String _unit = 'gram';
   bool _busy = false;
@@ -39,7 +40,12 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
     if (ing != null) {
       _nameCtrl.text = ing.name;
       _qtyCtrl.text = _fmtQty(ing.purchaseQty);
-      _categoryCtrl.text = ing.category ?? '';
+      // Legacy free-text categories that aren't in the fixed list get cleared
+      // so the user picks a valid value — otherwise the backend rejects the
+      // save.
+      _category = kIngredientCategories.contains(ing.category)
+          ? ing.category
+          : null;
       _price = ing.purchasePrice.round();
       _unit = ing.purchaseUnit;
     }
@@ -52,7 +58,6 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
   void dispose() {
     _nameCtrl.dispose();
     _qtyCtrl.dispose();
-    _categoryCtrl.dispose();
     super.dispose();
   }
 
@@ -77,7 +82,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
           purchasePrice: _price!.toDouble(),
           purchaseQty: qty,
           purchaseUnit: _unit,
-          category: _categoryCtrl.text.trim(),
+          category: _category ?? '',
         );
       } else {
         await p.create(
@@ -85,7 +90,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
           purchasePrice: _price!.toDouble(),
           purchaseQty: qty,
           purchaseUnit: _unit,
-          category: _categoryCtrl.text.trim(),
+          category: _category ?? '',
         );
       }
       if (mounted) context.pop();
@@ -194,12 +199,23 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                   ],
                 ),
                 const SizedBox(height: 12),
-                TextFormField(
-                  controller: _categoryCtrl,
+                DropdownButtonFormField<String?>(
+                  value: _category,
                   decoration: const InputDecoration(
                     labelText: 'Category (optional)',
-                    hintText: 'Dry, Wet, Fresh…',
                   ),
+                  items: [
+                    const DropdownMenuItem<String?>(
+                      value: null,
+                      child: Text('— None —'),
+                    ),
+                    for (final cat in kIngredientCategories)
+                      DropdownMenuItem<String?>(
+                        value: cat,
+                        child: Text(cat),
+                      ),
+                  ],
+                  onChanged: (v) => setState(() => _category = v),
                 ),
                 const SizedBox(height: 20),
                 GlassCard(

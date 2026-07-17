@@ -1,6 +1,9 @@
 class Pricing {
   final int recipeId;
   final double hppPerUnit;
+  final double ingredientCostPerUnit;
+  final double packagingCostPerUnit;
+  final double overheadCostPerUnit;
   final double? targetMarginPercent;
   final double? suggestedPrice;
   final DateTime? updatedAt;
@@ -8,6 +11,9 @@ class Pricing {
   Pricing({
     required this.recipeId,
     required this.hppPerUnit,
+    this.ingredientCostPerUnit = 0,
+    this.packagingCostPerUnit = 0,
+    this.overheadCostPerUnit = 0,
     this.targetMarginPercent,
     this.suggestedPrice,
     this.updatedAt,
@@ -21,6 +27,9 @@ class Pricing {
     return Pricing(
       recipeId: (json['recipe_id'] as num).toInt(),
       hppPerUnit: _num(json['hpp_per_unit']),
+      ingredientCostPerUnit: _num(json['ingredient_cost_per_unit']),
+      packagingCostPerUnit: _num(json['packaging_cost_per_unit']),
+      overheadCostPerUnit: _num(json['overhead_cost_per_unit']),
       targetMarginPercent: json['target_margin_percent'] == null
           ? null
           : _num(json['target_margin_percent']),
