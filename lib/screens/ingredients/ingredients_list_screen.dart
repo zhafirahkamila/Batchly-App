@@ -32,21 +32,21 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus bahan?'),
+        title: const Text('Delete ingredient?'),
         content: Text(
-          '"${ing.name}" akan dihapus dari daftar dan tidak lagi dapat dipakai di resep.',
+          '"${ing.name}" will be removed from the list and can no longer be used in recipes.',
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Batal'),
+            child: const Text('Cancel'),
           ),
           FilledButton(
             style: FilledButton.styleFrom(
               backgroundColor: AppColors.of(ctx).marginDangerText,
             ),
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Hapus'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -59,11 +59,11 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
     try {
       await context.read<IngredientsProvider>().delete(ing.id);
       messenger.showSnackBar(
-        SnackBar(content: Text('${ing.name} dihapus')),
+        SnackBar(content: Text('${ing.name} deleted')),
       );
     } catch (e) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Gagal menghapus: $e')),
+        SnackBar(content: Text('Failed to delete: $e')),
       );
     }
   }
@@ -85,7 +85,7 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
               ),
               ListTile(
                 leading: Icon(Icons.delete_outline, color: c.marginDangerText),
-                title: Text('Hapus', style: TextStyle(color: c.marginDangerText)),
+                title: Text('Delete', style: TextStyle(color: c.marginDangerText)),
                 onTap: () => Navigator.of(ctx).pop('delete'),
               ),
               const SizedBox(height: 8),
@@ -114,11 +114,11 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
         .toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Bahan Baku')),
+      appBar: AppBar(title: const Text('Pantry')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/ingredients/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
+        label: const Text('Add'),
       ),
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
@@ -129,7 +129,7 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                 children: [
                   TextField(
                     decoration: InputDecoration(
-                      hintText: 'Cari bahan…',
+                      hintText: 'Search ingredients…',
                       prefixIcon: const Icon(Icons.search),
                     ),
                     onChanged: (v) => setState(() => _query = v),
@@ -140,10 +140,10 @@ class _IngredientsListScreenState extends State<IngredientsListScreen> {
                       padding: const EdgeInsets.only(top: 60),
                       child: EmptyState(
                         icon: Icons.egg_alt_outlined,
-                        title: _query.isEmpty ? 'Belum ada bahan baku' : 'Tidak ditemukan',
+                        title: _query.isEmpty ? 'No ingredients yet' : 'No results',
                         subtitle: _query.isEmpty
-                            ? 'Tambahkan bahan pertama Anda untuk mulai menghitung HPP.'
-                            : 'Coba kata kunci lain.',
+                            ? 'Add your first ingredient to start calculating COGS.'
+                            : 'Try a different keyword.',
                       ),
                     )
                   else
@@ -226,7 +226,7 @@ class _DismissibleTile extends StatelessWidget {
           children: [
             Icon(Icons.delete_outline, color: Colors.white, size: 22),
             SizedBox(width: 6),
-            Text('Hapus',
+            Text('Delete',
                 style: TextStyle(
                   color: Colors.white,
                   fontWeight: FontWeight.w600,

@@ -13,7 +13,7 @@ class UnitDropdown extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.restrictToFamily,
-    this.label = 'Satuan',
+    this.label = 'Unit',
   });
 
   @override

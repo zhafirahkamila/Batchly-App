@@ -11,7 +11,7 @@ class ChatbotPlaceholderScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Chatbot AI')),
+      appBar: AppBar(title: const Text('AI Chatbot')),
       body: SafeArea(
         child: Center(
           child: Padding(
@@ -34,7 +34,7 @@ class ChatbotPlaceholderScreen extends StatelessWidget {
                           size: 44, color: Colors.white),
                     ),
                     const SizedBox(height: 20),
-                    Text('Segera hadir',
+                    Text('Coming soon',
                         style: TextStyle(
                           color: c.textPrimary,
                           fontSize: 20,
@@ -42,7 +42,7 @@ class ChatbotPlaceholderScreen extends StatelessWidget {
                         )),
                     const SizedBox(height: 8),
                     Text(
-                      'Nanti Anda bisa bertanya ke Batchly AI: "Kenapa margin brownies saya tipis?" atau "Bagaimana cara mengurangi biaya bahan?"',
+                      'Soon you\'ll be able to ask Batchly AI: "Why is my brownie margin so thin?" or "How can I reduce ingredient costs?"',
                       textAlign: TextAlign.center,
                       style: TextStyle(color: c.textSecondary, fontSize: 14, height: 1.5),
                     ),

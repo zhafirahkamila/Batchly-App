@@ -24,7 +24,7 @@ class User {
   }
 
   /// Guest placeholder — never persisted, never sent to the backend.
-  factory User.guest() => User(id: -1, name: 'Tamu', email: 'guest@batchly.local');
+  factory User.guest() => User(id: -1, name: 'Guest', email: 'guest@batchly.local');
 
   bool get isGuest => id == -1;
 }

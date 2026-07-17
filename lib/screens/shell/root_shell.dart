@@ -20,18 +20,20 @@ class RootShell extends StatefulWidget {
 class _RootShellState extends State<RootShell> {
   bool _bannerDismissed = false;
 
+  // Chatbot is not in this list — it's the floating center action button.
   static const _tabs = [
     ('/', Icons.dashboard_rounded, 'Home'),
     ('/ingredients', Icons.egg_alt_outlined, 'Pantry'),
     ('/recipes', Icons.receipt_long_rounded, 'Recipe'),
-    ('/chatbot', Icons.smart_toy_outlined, 'Chatbot'),
     ('/profile', Icons.person_outline, 'Profile'),
   ];
 
+  static const _chatbotPath = '/chatbot';
+
+  /// Returns the selected tab index, or -1 if the current path isn't a tab
+  /// (e.g. on /chatbot, no tab is highlighted).
   int _indexForPath(String path) {
-    // Highest-index prefix match wins (so /profile/overhead → Profil tab, not
-    // Dashboard).
-    var best = 0;
+    var best = -1;
     var bestLen = -1;
     for (var i = 0; i < _tabs.length; i++) {
       final p = _tabs[i].$1;
@@ -61,17 +63,134 @@ class _RootShellState extends State<RootShell> {
           Expanded(child: widget.child),
         ],
       ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          border: Border(top: BorderSide(color: c.border)),
+      floatingActionButton: _ChatbotFab(
+        selected: widget.currentPath.startsWith(_chatbotPath),
+        onTap: () => context.go(_chatbotPath),
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      bottomNavigationBar: BottomAppBar(
+        shape: const CircularNotchedRectangle(),
+        notchMargin: 8,
+        elevation: 8,
+        color: c.surface,
+        padding: EdgeInsets.zero,
+        child: SizedBox(
+          height: 60,
+          child: Row(
+            children: [
+              _NavItem(
+                icon: _tabs[0].$2,
+                label: _tabs[0].$3,
+                selected: idx == 0,
+                onTap: () => context.go(_tabs[0].$1),
+              ),
+              _NavItem(
+                icon: _tabs[1].$2,
+                label: _tabs[1].$3,
+                selected: idx == 1,
+                onTap: () => context.go(_tabs[1].$1),
+              ),
+              const SizedBox(width: 72), // space for the notched FAB
+              _NavItem(
+                icon: _tabs[2].$2,
+                label: _tabs[2].$3,
+                selected: idx == 2,
+                onTap: () => context.go(_tabs[2].$1),
+              ),
+              _NavItem(
+                icon: _tabs[3].$2,
+                label: _tabs[3].$3,
+                selected: idx == 3,
+                onTap: () => context.go(_tabs[3].$1),
+              ),
+            ],
+          ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: idx,
-          onTap: (i) => context.go(_tabs[i].$1),
-          items: [
-            for (final t in _tabs)
-              BottomNavigationBarItem(icon: Icon(t.$2), label: t.$3),
+      ),
+    );
+  }
+}
+
+class _NavItem extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _NavItem({
+    required this.icon,
+    required this.label,
+    required this.selected,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    final color = selected ? c.accentPrimary : c.textSecondary;
+    return Expanded(
+      child: InkWell(
+        onTap: onTap,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: color, size: 24),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                color: color,
+                fontSize: 12,
+                fontWeight: selected ? FontWeight.w600 : FontWeight.w500,
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ChatbotFab extends StatelessWidget {
+  final bool selected;
+  final VoidCallback onTap;
+
+  const _ChatbotFab({required this.selected, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    final c = AppColors.of(context);
+    return SizedBox(
+      width: 60,
+      height: 60,
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: c.accentGradient,
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: c.accentPrimary.withOpacity(0.35),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Material(
+          color: Colors.transparent,
+          shape: const CircleBorder(),
+          child: InkWell(
+            customBorder: const CircleBorder(),
+            onTap: onTap,
+            child: Icon(
+              Icons.smart_toy_outlined,
+              color: Colors.white,
+              size: selected ? 30 : 28,
+            ),
+          ),
         ),
       ),
     );
@@ -97,18 +216,18 @@ class _GuestBanner extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  'Mode Tamu — data tidak disimpan. Daftar untuk menyimpan.',
+                  "Guest Mode — data isn't saved. Sign up to save.",
                   style: TextStyle(color: c.textPrimary, fontSize: 12.5),
                 ),
               ),
               TextButton(
                 onPressed: () => context.go('/register'),
-                child: const Text('Daftar'),
+                child: const Text('Sign up'),
               ),
               IconButton(
                 onPressed: onDismiss,
                 icon: Icon(Icons.close, size: 18, color: c.textSecondary),
-                tooltip: 'Tutup',
+                tooltip: 'Close',
                 visualDensity: VisualDensity.compact,
               ),
             ],

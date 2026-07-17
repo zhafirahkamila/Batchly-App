@@ -91,7 +91,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -102,13 +102,13 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus bahan?'),
-        content: const Text('Bahan ini akan dihapus dari daftar dan tidak lagi dapat dipakai di resep.'),
+        title: const Text('Delete ingredient?'),
+        content: const Text('This ingredient will be removed and can no longer be used in recipes.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Hapus'),
+            child: const Text('Delete'),
           ),
         ],
       ),
@@ -119,7 +119,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -136,11 +136,11 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Edit Bahan' : 'Tambah Bahan'),
+        title: Text(_isEdit ? 'Edit Ingredient' : 'Add Ingredient'),
         actions: [
           if (_isEdit)
             IconButton(
-              tooltip: 'Hapus',
+              tooltip: 'Delete',
               icon: const Icon(Icons.delete_outline),
               onPressed: _confirmDelete,
             ),
@@ -157,16 +157,16 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
               children: [
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama bahan'),
+                  decoration: const InputDecoration(labelText: 'Ingredient name'),
                   validator: (v) =>
-                      (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 RupiahField(
-                  label: 'Harga beli',
+                  label: 'Purchase price',
                   initialValue: _price,
                   onChanged: (v) => setState(() => _price = v),
-                  validator: (v) => (v == null || v <= 0) ? 'Wajib diisi' : null,
+                  validator: (v) => (v == null || v <= 0) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -174,12 +174,12 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _qtyCtrl,
-                        decoration: const InputDecoration(labelText: 'Jumlah beli'),
+                        decoration: const InputDecoration(labelText: 'Purchase quantity'),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'Wajib diisi';
+                          if (v == null || v.trim().isEmpty) return 'Required';
                           final n = double.tryParse(v.replaceAll(',', '.'));
-                          if (n == null || n <= 0) return 'Angka > 0';
+                          if (n == null || n <= 0) return 'Must be > 0';
                           return null;
                         },
                       ),
@@ -197,8 +197,8 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                 TextFormField(
                   controller: _categoryCtrl,
                   decoration: const InputDecoration(
-                    labelText: 'Kategori (opsional)',
-                    hintText: 'Kering, Basah, Segar…',
+                    labelText: 'Category (optional)',
+                    hintText: 'Dry, Wet, Fresh…',
                   ),
                 ),
                 const SizedBox(height: 20),
@@ -211,7 +211,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Harga per satuan dasar',
+                            Text('Price per base unit',
                                 style: TextStyle(color: c.textSecondary, fontSize: 12)),
                             const SizedBox(height: 2),
                             Text(
@@ -230,7 +230,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
-                  label: _isEdit ? 'Simpan Perubahan' : 'Simpan Bahan',
+                  label: _isEdit ? 'Save Changes' : 'Save Ingredient',
                   loading: _busy,
                   onPressed: _busy ? null : _submit,
                 ),

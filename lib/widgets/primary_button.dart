@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import '../core/theme/app_colors.dart';
 import '../core/theme/gradients.dart';
 
-/// Full-width gradient button used for hero CTAs (Login, Hitung, Simpan).
+/// Full-width gradient button used for hero CTAs (Sign in, Calculate, Save).
 class PrimaryButton extends StatelessWidget {
   final String label;
   final IconData? icon;

@@ -47,7 +47,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final auth = context.read<AuthProvider>();
     if (auth.isGuest) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Daftar untuk menyimpan profil Anda.')),
+        const SnackBar(content: Text('Sign up to save your profile.')),
       );
       return;
     }
@@ -61,12 +61,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       auth.updateLocalUser(updated);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Profil disimpan')),
+          const SnackBar(content: Text('Profile saved')),
         );
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -85,7 +85,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final themeProv = context.watch<ThemeProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Profil')),
+      appBar: AppBar(title: const Text('Profile')),
       body: SafeArea(
         child: ListView(
           padding: const EdgeInsets.all(16),
@@ -118,7 +118,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(auth.user?.name ?? 'Tamu',
+                        Text(auth.user?.name ?? 'Guest',
                             style: TextStyle(
                               color: c.textPrimary,
                               fontSize: 18,
@@ -135,7 +135,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
-                              'Mode Tamu',
+                              'Guest Mode',
                               style: TextStyle(
                                 color: c.accentPrimary,
                                 fontSize: 11,
@@ -150,39 +150,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 20),
-            const SectionHeader(title: 'Informasi Akun'),
+            const SectionHeader(title: 'Account Information'),
             TextField(
               controller: _nameCtrl,
-              decoration: const InputDecoration(labelText: 'Nama'),
+              decoration: const InputDecoration(labelText: 'Name'),
               enabled: !auth.isGuest,
             ),
             const SizedBox(height: 10),
             TextField(
               controller: _businessCtrl,
-              decoration: const InputDecoration(labelText: 'Nama Usaha'),
+              decoration: const InputDecoration(labelText: 'Business Name'),
               enabled: !auth.isGuest,
             ),
             const SizedBox(height: 14),
             PrimaryButton(
-              label: 'Simpan Profil',
+              label: 'Save Profile',
               icon: Icons.save_outlined,
               loading: _busy,
               onPressed: auth.isGuest ? null : (_busy ? null : _save),
             ),
             const SizedBox(height: 24),
-            const SectionHeader(title: 'Tampilan'),
+            const SectionHeader(title: 'Appearance'),
             GlassCard(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Mode Tema',
+                  Text('Theme Mode',
                       style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
                   const SizedBox(height: 10),
                   SegmentedButton<ThemeMode>(
                     segments: const [
-                      ButtonSegment(value: ThemeMode.light, label: Text('Terang'), icon: Icon(Icons.light_mode)),
-                      ButtonSegment(value: ThemeMode.dark, label: Text('Gelap'), icon: Icon(Icons.dark_mode)),
-                      ButtonSegment(value: ThemeMode.system, label: Text('Sistem'), icon: Icon(Icons.brightness_auto)),
+                      ButtonSegment(value: ThemeMode.light, label: Text('Light'), icon: Icon(Icons.light_mode)),
+                      ButtonSegment(value: ThemeMode.dark, label: Text('Dark'), icon: Icon(Icons.dark_mode)),
+                      ButtonSegment(value: ThemeMode.system, label: Text('System'), icon: Icon(Icons.brightness_auto)),
                     ],
                     selected: {themeProv.mode},
                     onSelectionChanged: (s) => themeProv.setMode(s.first),
@@ -191,23 +191,23 @@ class _ProfileScreenState extends State<ProfileScreen> {
               ),
             ),
             const SizedBox(height: 24),
-            const SectionHeader(title: 'Lainnya'),
+            const SectionHeader(title: 'Other'),
             GlassCard(
               padding: EdgeInsets.zero,
               child: Column(
                 children: [
                   ListTile(
                     leading: Icon(Icons.receipt_outlined, color: c.accentPrimary),
-                    title: const Text('Biaya Overhead'),
-                    subtitle: const Text('Kelola biaya listrik, gas, kemasan, dll.'),
+                    title: const Text('Overhead Costs'),
+                    subtitle: const Text('Manage costs for electricity, gas, packaging, etc.'),
                     trailing: const Icon(Icons.chevron_right),
                     onTap: () => context.push('/profile/overhead'),
                   ),
                   Divider(height: 1, color: c.border),
                   ListTile(
                     leading: Icon(Icons.help_outline, color: c.textSecondary),
-                    title: const Text('Tentang Batchly'),
-                    subtitle: const Text('Aplikasi hitung HPP untuk usaha F&B kecil.'),
+                    title: const Text('About Batchly'),
+                    subtitle: const Text('COGS calculator for small F&B businesses.'),
                     onTap: () {
                       showAboutDialog(
                         context: context,
@@ -223,7 +223,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             OutlinedButton.icon(
               onPressed: _logout,
               icon: const Icon(Icons.logout),
-              label: Text(auth.isGuest ? 'Keluar dari Mode Tamu' : 'Keluar'),
+              label: Text(auth.isGuest ? 'Exit Guest Mode' : 'Sign out'),
               style: OutlinedButton.styleFrom(
                 foregroundColor: c.marginDangerText,
                 side: BorderSide(color: c.marginDangerText.withOpacity(0.4)),

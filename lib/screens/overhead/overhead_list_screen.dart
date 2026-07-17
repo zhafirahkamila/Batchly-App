@@ -34,11 +34,11 @@ class _OverheadListScreenState extends State<OverheadListScreen> {
     final perBatch = p.items.where((o) => o.period == 'per_batch').toList();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Biaya Overhead')),
+      appBar: AppBar(title: const Text('Overhead Costs')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/profile/overhead/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
+        label: const Text('Add'),
       ),
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
@@ -48,8 +48,8 @@ class _OverheadListScreenState extends State<OverheadListScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 8, 16, 96),
                 children: [
                   Text(
-                    'Biaya rutin seperti listrik, gas, kemasan, gaji. '
-                    'Overhead dipakai saat menghitung HPP untuk membagi biaya bulanan ke setiap produk.',
+                    'Recurring costs like electricity, gas, packaging, salaries. '
+                    'Overhead is used when calculating COGS to allocate monthly costs to each product.',
                     style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
                   ),
                   const SizedBox(height: 12),
@@ -58,12 +58,12 @@ class _OverheadListScreenState extends State<OverheadListScreen> {
                       padding: const EdgeInsets.only(top: 60),
                       child: EmptyState(
                         icon: Icons.receipt_outlined,
-                        title: 'Belum ada overhead',
-                        subtitle: 'Tambahkan biaya operasional pertama Anda.',
+                        title: 'No overhead yet',
+                        subtitle: 'Add your first operating cost.',
                       ),
                     ),
                   if (perBulan.isNotEmpty) ...[
-                    const SectionHeader(title: 'Per Bulan'),
+                    const SectionHeader(title: 'Per Month'),
                     for (final o in perBulan) ...[
                       _OverheadTile(overhead: o, colors: c),
                       const SizedBox(height: 10),
@@ -119,7 +119,7 @@ class _OverheadTile extends StatelessWidget {
                       fontWeight: FontWeight.w600,
                     )),
                 Text(
-                  overhead.period == 'per_bulan' ? 'per bulan' : 'per batch',
+                  overhead.period == 'per_bulan' ? 'per month' : 'per batch',
                   style: TextStyle(color: colors.textSecondary, fontSize: 12),
                 ),
               ],

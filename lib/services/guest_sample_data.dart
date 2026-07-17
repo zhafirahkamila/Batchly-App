@@ -2,7 +2,7 @@ import '../models/recipe_ingredient.dart';
 import '../providers/guest_data_store.dart';
 
 /// Sample dataset used ONLY by [GuestDataStore] to populate the demo calculator
-/// shown behind the "Lanjut sebagai Tamu" flow.
+/// shown behind the "Continue as Guest" flow.
 ///
 /// This file is guest-only. NEVER import it from an authenticated screen or
 /// service — authenticated users must always see live data (or an empty state)

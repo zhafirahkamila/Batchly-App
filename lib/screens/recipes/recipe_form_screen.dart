@@ -80,7 +80,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
       }
     }
   }
@@ -102,7 +102,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
     final validRows = _rows.where((r) => r.ingredientId != null).toList();
     if (validRows.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Tambahkan minimal 1 bahan')),
+        const SnackBar(content: Text('Add at least 1 ingredient')),
       );
       return;
     }
@@ -111,7 +111,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       final qty = double.tryParse(r.qtyCtrl.text.replaceAll(',', '.'));
       if (qty == null || qty <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Semua qty bahan harus > 0')),
+          const SnackBar(content: Text('All ingredient quantities must be > 0')),
         );
         return;
       }
@@ -145,7 +145,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       if (mounted) context.go('/recipes/${saved.id}');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -158,7 +158,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
     final ingredients = context.watch<IngredientsProvider>().items;
 
     return Scaffold(
-      appBar: AppBar(title: Text(_isEdit ? 'Edit Resep' : 'Tambah Resep')),
+      appBar: AppBar(title: Text(_isEdit ? 'Edit Recipe' : 'Add Recipe')),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
@@ -169,8 +169,8 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
               children: [
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama resep'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                  decoration: const InputDecoration(labelText: 'Recipe name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -178,11 +178,11 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _yieldQtyCtrl,
-                        decoration: const InputDecoration(labelText: 'Hasil per batch'),
+                        decoration: const InputDecoration(labelText: 'Yield per batch'),
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
                         validator: (v) {
                           final n = double.tryParse((v ?? '').replaceAll(',', '.'));
-                          if (n == null || n <= 0) return 'Angka > 0';
+                          if (n == null || n <= 0) return 'Must be > 0';
                           return null;
                         },
                       ),
@@ -190,7 +190,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: UnitDropdown(
-                        label: 'Satuan hasil',
+                        label: 'Yield unit',
                         value: _yieldUnit,
                         onChanged: (v) => setState(() => _yieldUnit = v),
                       ),
@@ -198,7 +198,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text('Bahan-bahan',
+                Text('Ingredients',
                     style: TextStyle(
                       color: c.textPrimary,
                       fontSize: 15,
@@ -212,7 +212,7 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                         Icon(Icons.info_outline, color: c.accentPrimary),
                         const SizedBox(width: 12),
                         const Expanded(
-                          child: Text('Belum ada bahan. Tambahkan bahan dulu di tab Bahan Baku.'),
+                          child: Text('No ingredients yet. Add ingredients first in the Pantry tab.'),
                         ),
                       ],
                     ),
@@ -240,12 +240,12 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                   child: TextButton.icon(
                     onPressed: () => setState(() => _rows.add(_RowEdit())),
                     icon: const Icon(Icons.add),
-                    label: const Text('Tambah Bahan'),
+                    label: const Text('Add Ingredient'),
                   ),
                 ),
                 const SizedBox(height: 20),
                 PrimaryButton(
-                  label: _isEdit ? 'Simpan Perubahan' : 'Simpan Resep',
+                  label: _isEdit ? 'Save Changes' : 'Save Recipe',
                   loading: _busy,
                   onPressed: _busy ? null : _submit,
                 ),
@@ -303,7 +303,7 @@ class _IngredientRow extends StatelessWidget {
           DropdownButtonFormField<int>(
             value: row.ingredientId,
             isExpanded: true,
-            decoration: const InputDecoration(labelText: 'Bahan'),
+            decoration: const InputDecoration(labelText: 'Ingredient'),
             items: [
               for (final i in allIngredients)
                 DropdownMenuItem(value: i.id, child: Text(i.name)),
@@ -328,7 +328,7 @@ class _IngredientRow extends StatelessWidget {
               const SizedBox(width: 12),
               Expanded(
                 child: UnitDropdown(
-                  label: 'Satuan',
+                  label: 'Unit',
                   value: row.unit,
                   restrictToFamily: selectedFamily,
                   onChanged: (v) {
@@ -341,7 +341,7 @@ class _IngredientRow extends StatelessWidget {
                 IconButton(
                   icon: const Icon(Icons.close),
                   onPressed: onRemove,
-                  tooltip: 'Hapus bahan',
+                  tooltip: 'Remove ingredient',
                 ),
             ],
           ),

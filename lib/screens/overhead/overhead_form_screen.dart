@@ -58,7 +58,7 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -69,11 +69,11 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus overhead?'),
-        content: const Text('Overhead ini akan dihapus dan tidak lagi tersedia untuk alokasi.'),
+        title: const Text('Delete overhead?'),
+        content: const Text('This overhead will be deleted and no longer available for allocation.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
         ],
       ),
     );
@@ -83,7 +83,7 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -92,11 +92,11 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(_isEdit ? 'Edit Overhead' : 'Tambah Overhead'),
+        title: Text(_isEdit ? 'Edit Overhead' : 'Add Overhead'),
         actions: [
           if (_isEdit)
             IconButton(
-              tooltip: 'Hapus',
+              tooltip: 'Delete',
               icon: const Icon(Icons.delete_outline),
               onPressed: _confirmDelete,
             ),
@@ -112,20 +112,20 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
               children: [
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Nama biaya'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                  decoration: const InputDecoration(labelText: 'Cost name'),
+                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 RupiahField(
-                  label: 'Nominal',
+                  label: 'Amount',
                   initialValue: _amount,
                   onChanged: (v) => _amount = v,
-                  validator: (v) => (v == null || v <= 0) ? 'Wajib diisi' : null,
+                  validator: (v) => (v == null || v <= 0) ? 'Required' : null,
                 ),
                 const SizedBox(height: 16),
                 SegmentedButton<String>(
                   segments: const [
-                    ButtonSegment(value: 'per_bulan', label: Text('Per Bulan'), icon: Icon(Icons.calendar_month)),
+                    ButtonSegment(value: 'per_bulan', label: Text('Per Month'), icon: Icon(Icons.calendar_month)),
                     ButtonSegment(value: 'per_batch', label: Text('Per Batch'), icon: Icon(Icons.inventory_2)),
                   ],
                   selected: {_period},
@@ -133,7 +133,7 @@ class _OverheadFormScreenState extends State<OverheadFormScreen> {
                 ),
                 const SizedBox(height: 24),
                 PrimaryButton(
-                  label: _isEdit ? 'Simpan Perubahan' : 'Simpan Overhead',
+                  label: _isEdit ? 'Save Changes' : 'Save Overhead',
                   loading: _busy,
                   onPressed: _busy ? null : _submit,
                 ),

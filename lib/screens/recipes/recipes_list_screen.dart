@@ -30,11 +30,11 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
     final p = context.watch<RecipesProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: const Text('Resep')),
+      appBar: AppBar(title: const Text('Recipes')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push('/recipes/new'),
         icon: const Icon(Icons.add),
-        label: const Text('Tambah'),
+        label: const Text('Add'),
       ),
       body: RefreshIndicator(
         onRefresh: () => p.refresh(),
@@ -46,8 +46,8 @@ class _RecipesListScreenState extends State<RecipesListScreen> {
                       const SizedBox(height: 80),
                       EmptyState(
                         icon: Icons.receipt_long_rounded,
-                        title: 'Belum ada resep',
-                        subtitle: 'Tambahkan resep pertama untuk mulai menghitung HPP.',
+                        title: 'No recipes yet',
+                        subtitle: 'Add your first recipe to start calculating COGS.',
                       ),
                     ],
                   )

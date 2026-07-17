@@ -80,7 +80,7 @@ class _PricingSheetState extends State<PricingSheet> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal memuat: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -131,7 +131,7 @@ class _PricingSheetState extends State<PricingSheet> {
     if (result != null) {
       setState(() => _persisted = result);
     } else {
-      final err = context.read<PricingProvider>().error ?? 'Gagal';
+      final err = context.read<PricingProvider>().error ?? 'Failed';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
@@ -142,14 +142,14 @@ class _PricingSheetState extends State<PricingSheet> {
 
     if (_loading) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Hitung HPP')),
+        appBar: AppBar(title: const Text('Calculate COGS')),
         body: const Center(child: CircularProgressIndicator()),
       );
     }
     if (_recipe == null) {
       return Scaffold(
-        appBar: AppBar(title: const Text('Hitung HPP')),
-        body: const Center(child: Text('Resep tidak ditemukan')),
+        appBar: AppBar(title: const Text('Calculate COGS')),
+        body: const Center(child: Text('Recipe not found')),
       );
     }
 
@@ -158,7 +158,7 @@ class _PricingSheetState extends State<PricingSheet> {
     final pricingProv = context.watch<PricingProvider>();
 
     return Scaffold(
-      appBar: AppBar(title: Text('Hitung HPP · ${_recipe!.name}')),
+      appBar: AppBar(title: Text('Calculate COGS · ${_recipe!.name}')),
       body: SafeArea(
         child: LayoutBuilder(
           builder: (context, constraints) {
@@ -185,7 +185,7 @@ class _PricingSheetState extends State<PricingSheet> {
                   right,
                   const SizedBox(height: 12),
                   PrimaryButton(
-                    label: 'Hitung',
+                    label: 'Calculate',
                     icon: Icons.calculate_rounded,
                     loading: pricingProv.calculating,
                     onPressed: pricingProv.calculating ? null : _submit,
@@ -201,8 +201,8 @@ class _PricingSheetState extends State<PricingSheet> {
               onPressed: pricingProv.calculating ? null : _submit,
               icon: const Icon(Icons.calculate_rounded),
               label: pricingProv.calculating
-                  ? const Text('Menghitung…')
-                  : const Text('Hitung'),
+                  ? const Text('Calculating…')
+                  : const Text('Calculate'),
             )
           : null,
     );
@@ -212,7 +212,7 @@ class _PricingSheetState extends State<PricingSheet> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        const SectionHeader(title: 'Alokasi Overhead'),
+        const SectionHeader(title: 'Overhead Allocation'),
         if (_allocs.isEmpty)
           GlassCard(
             child: Row(
@@ -221,7 +221,7 @@ class _PricingSheetState extends State<PricingSheet> {
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
-                    'Belum ada biaya overhead. HPP hanya akan menghitung biaya bahan.',
+                    'No overhead costs yet. COGS will only include ingredient costs.',
                   ),
                 ),
               ],
@@ -237,7 +237,7 @@ class _PricingSheetState extends State<PricingSheet> {
               )),
         TextButton.icon(
           icon: const Icon(Icons.add),
-          label: const Text('Tambah Overhead'),
+          label: const Text('Add Overhead'),
           onPressed: () async {
             await context.push('/profile/overhead/new');
             if (!mounted) return;
@@ -300,12 +300,12 @@ class _PricingSheetState extends State<PricingSheet> {
           children: [
             Icon(Icons.calculate_outlined, color: c.textSecondary),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Isi bahan resep untuk melihat estimasi.')),
+            const Expanded(child: Text('Fill in recipe ingredients to see estimates.')),
           ],
         ),
       );
     }
-    final label = isPersisted ? 'Hasil Perhitungan (tersimpan)' : 'Estimasi Langsung';
+    final label = isPersisted ? 'Saved Result' : 'Live Estimate';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -321,7 +321,7 @@ class _PricingSheetState extends State<PricingSheet> {
                 children: [
                   Row(
                     children: [
-                      const Text('Harga Jual per unit',
+                      const Text('Selling price per unit',
                           style: TextStyle(color: Colors.white70)),
                       const Spacer(),
                       MarginBadge(marginPercent: b.marginPercent),
@@ -339,9 +339,9 @@ class _PricingSheetState extends State<PricingSheet> {
                   const SizedBox(height: 12),
                   Row(
                     children: [
-                      _MiniStat(label: 'HPP', value: formatRupiah(b.hppPerUnit)),
+                      _MiniStat(label: 'COGS', value: formatRupiah(b.hppPerUnit)),
                       const SizedBox(width: 20),
-                      _MiniStat(label: 'Untung', value: formatRupiah(b.profitPerUnit)),
+                      _MiniStat(label: 'Profit', value: formatRupiah(b.profitPerUnit)),
                     ],
                   ),
                 ],
@@ -350,7 +350,7 @@ class _PricingSheetState extends State<PricingSheet> {
           ),
         ),
         const SizedBox(height: 14),
-        const SectionHeader(title: 'Rincian Bahan'),
+        const SectionHeader(title: 'Ingredient Breakdown'),
         GlassCard(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Column(
@@ -378,7 +378,7 @@ class _PricingSheetState extends State<PricingSheet> {
               const Divider(height: 20),
               Row(
                 children: [
-                  Expanded(child: Text('Total bahan / batch',
+                  Expanded(child: Text('Total ingredients / batch',
                       style: TextStyle(color: c.textSecondary))),
                   Text(formatRupiah(b.ingredientCostTotal),
                       style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
@@ -386,7 +386,7 @@ class _PricingSheetState extends State<PricingSheet> {
               ),
               Row(
                 children: [
-                  Expanded(child: Text('Bahan per ${b.yieldUnit}',
+                  Expanded(child: Text('Ingredients per ${b.yieldUnit}',
                       style: TextStyle(color: c.textSecondary))),
                   Text(formatRupiah(b.ingredientCostPerUnit),
                       style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
@@ -397,7 +397,7 @@ class _PricingSheetState extends State<PricingSheet> {
         ),
         if (b.overheadBreakdown.isNotEmpty) ...[
           const SizedBox(height: 14),
-          const SectionHeader(title: 'Rincian Overhead'),
+          const SectionHeader(title: 'Overhead Breakdown'),
           GlassCard(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             child: Column(
@@ -414,7 +414,7 @@ class _PricingSheetState extends State<PricingSheet> {
                               Text(o.name, style: TextStyle(color: c.textPrimary)),
                               Text(
                                 o.period == 'per_bulan'
-                                    ? '${formatRupiah(o.amount)}/bulan ÷ ${o.estimatedMonthlyProduction} produksi'
+                                    ? '${formatRupiah(o.amount)}/month ÷ ${o.estimatedMonthlyProduction} units'
                                     : '${formatRupiah(o.amount)}/batch ÷ ${_fmt(b.yieldQty)} ${b.yieldUnit}',
                                 style: TextStyle(color: c.textSecondary, fontSize: 11),
                               ),
@@ -430,6 +430,7 @@ class _PricingSheetState extends State<PricingSheet> {
                 Row(
                   children: [
                     Expanded(child: Text('Overhead per ${b.yieldUnit}',
+
                         style: TextStyle(color: c.textSecondary))),
                     Text(formatRupiah(b.totalOverheadPerUnit),
                         style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
@@ -447,7 +448,7 @@ class _PricingSheetState extends State<PricingSheet> {
           const SizedBox(height: 12),
           OutlinedButton.icon(
             icon: const Icon(Icons.close),
-            label: const Text('Selesai'),
+            label: const Text('Done'),
             onPressed: () {
               context.read<PricingProvider>().clear();
               context.pop();
@@ -495,8 +496,8 @@ class _MarginWarning extends StatelessWidget {
     final bg = isDanger ? c.marginDangerBg : c.marginWarningBg;
     final fg = isDanger ? c.marginDangerText : c.marginWarningText;
     final msg = isDanger
-        ? 'Harga jual di bawah HPP — Anda akan rugi setiap unit yang terjual.'
-        : 'Margin tipis (<15%). Pertimbangkan menaikkan harga atau menekan biaya bahan.';
+        ? 'Selling price is below COGS — you will lose money on each unit sold.'
+        : 'Thin margin (<15%). Consider raising the price or lowering ingredient costs.';
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
@@ -543,7 +544,7 @@ class _OverheadRow extends StatelessWidget {
                     Text(edit.overhead.name,
                         style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
                     Text(
-                      '${formatRupiah(edit.overhead.amount)} · ${edit.overhead.period == 'per_bulan' ? 'per bulan' : 'per batch'}',
+                      '${formatRupiah(edit.overhead.amount)} · ${edit.overhead.period == 'per_bulan' ? 'per month' : 'per batch'}',
                       style: TextStyle(color: c.textSecondary, fontSize: 12),
                     ),
                   ],
@@ -557,8 +558,8 @@ class _OverheadRow extends StatelessWidget {
               child: TextFormField(
                 initialValue: edit.emp.toString(),
                 decoration: const InputDecoration(
-                  labelText: 'Estimasi produksi per bulan',
-                  helperText: 'Dipakai untuk membagi biaya bulanan ini ke setiap unit.',
+                  labelText: 'Estimated production per month',
+                  helperText: 'Used to divide this monthly cost across each unit.',
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (v) {

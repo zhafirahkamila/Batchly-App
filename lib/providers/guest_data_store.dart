@@ -11,7 +11,7 @@ import '../models/recipe.dart';
 import '../models/recipe_ingredient.dart';
 import '../services/guest_sample_data.dart';
 
-/// In-memory dataset used when the user chose "Lanjut sebagai Tamu". Mirrors
+/// In-memory dataset used when the user chose "Continue as Guest". Mirrors
 /// the backend's data model closely enough that services can swap between
 /// this and the real API by branching on `AuthProvider.isGuest`.
 ///

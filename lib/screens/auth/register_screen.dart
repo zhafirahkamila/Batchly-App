@@ -46,7 +46,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
     if (ok) {
       context.go('/');
     } else {
-      final err = context.read<AuthProvider>().lastError ?? 'Registrasi gagal';
+      final err = context.read<AuthProvider>().lastError ?? 'Registration failed';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
@@ -55,7 +55,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     return Scaffold(
-      appBar: AppBar(title: const Text('Daftar Akun')),
+      appBar: AppBar(title: const Text('Sign Up')),
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -72,25 +72,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       child: BatchlyLogo(size: 56),
                     ),
                     const SizedBox(height: 18),
-                    Text('Buat akun Batchly',
+                    Text('Create your Batchly account',
                         style: TextStyle(
                           color: c.textPrimary,
                           fontSize: 22,
                           fontWeight: FontWeight.w700,
                         )),
                     const SizedBox(height: 4),
-                    Text('Simpan resep, bahan baku, dan hitung HPP kapan saja.',
+                    Text('Save recipes, ingredients, and calculate COGS anytime.',
                         style: TextStyle(color: c.textSecondary, fontSize: 14)),
                     const SizedBox(height: 22),
                     TextFormField(
                       controller: _nameCtrl,
-                      decoration: const InputDecoration(labelText: 'Nama'),
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                      decoration: const InputDecoration(labelText: 'Name'),
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
                       controller: _businessCtrl,
-                      decoration: const InputDecoration(labelText: 'Nama Usaha (opsional)'),
+                      decoration: const InputDecoration(labelText: 'Business Name (optional)'),
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -98,8 +98,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       decoration: const InputDecoration(labelText: 'Email'),
                       keyboardType: TextInputType.emailAddress,
                       validator: (v) {
-                        if (v == null || v.trim().isEmpty) return 'Wajib diisi';
-                        if (!v.contains('@')) return 'Email tidak valid';
+                        if (v == null || v.trim().isEmpty) return 'Required';
+                        if (!v.contains('@')) return 'Invalid email';
                         return null;
                       },
                     ),
@@ -108,21 +108,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       controller: _passCtrl,
                       obscureText: _obscure,
                       decoration: InputDecoration(
-                        labelText: 'Password (min 6 karakter)',
+                        labelText: 'Password (min 6 characters)',
                         suffixIcon: IconButton(
                           icon: Icon(_obscure ? Icons.visibility : Icons.visibility_off),
                           onPressed: () => setState(() => _obscure = !_obscure),
                         ),
                       ),
                       validator: (v) {
-                        if (v == null || v.isEmpty) return 'Wajib diisi';
-                        if (v.length < 6) return 'Minimal 6 karakter';
+                        if (v == null || v.isEmpty) return 'Required';
+                        if (v.length < 6) return 'At least 6 characters';
                         return null;
                       },
                     ),
                     const SizedBox(height: 22),
                     PrimaryButton(
-                      label: 'Daftar',
+                      label: 'Sign up',
                       loading: _busy,
                       onPressed: _busy ? null : _submit,
                     ),
@@ -130,11 +130,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Sudah punya akun?',
+                        Text('Already have an account?',
                             style: TextStyle(color: c.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/login'),
-                          child: const Text('Masuk'),
+                          child: const Text('Sign in'),
                         ),
                       ],
                     ),

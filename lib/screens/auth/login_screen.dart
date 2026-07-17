@@ -40,7 +40,7 @@ class _LoginScreenState extends State<LoginScreen> {
     if (ok) {
       context.go('/');
     } else {
-      final err = context.read<AuthProvider>().lastError ?? 'Login gagal';
+      final err = context.read<AuthProvider>().lastError ?? 'Login failed';
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(err)));
     }
   }
@@ -62,14 +62,14 @@ class _LoginScreenState extends State<LoginScreen> {
                   children: [
                     const BatchlyLogo(size: 72, showWordmark: true),
                     const SizedBox(height: 32),
-                    Text('Selamat datang kembali',
+                    Text('Welcome back',
                         style: TextStyle(
                           color: c.textPrimary,
                           fontSize: 24,
                           fontWeight: FontWeight.w700,
                         )),
                     const SizedBox(height: 6),
-                    Text('Masuk untuk melanjutkan menghitung HPP.',
+                    Text('Sign in to continue calculating COGS.',
                         style: TextStyle(color: c.textSecondary, fontSize: 14)),
                     const SizedBox(height: 24),
                     TextFormField(
@@ -77,7 +77,7 @@ class _LoginScreenState extends State<LoginScreen> {
                       decoration: const InputDecoration(labelText: 'Email'),
                       keyboardType: TextInputType.emailAddress,
                       autofillHints: const [AutofillHints.email],
-                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Wajib diisi' : null,
+                      validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 12),
                     TextFormField(
@@ -91,11 +91,11 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                       ),
                       autofillHints: const [AutofillHints.password],
-                      validator: (v) => (v == null || v.isEmpty) ? 'Wajib diisi' : null,
+                      validator: (v) => (v == null || v.isEmpty) ? 'Required' : null,
                     ),
                     const SizedBox(height: 20),
                     PrimaryButton(
-                      label: 'Masuk',
+                      label: 'Sign in',
                       icon: Icons.login,
                       loading: _busy,
                       onPressed: _busy ? null : _submit,
@@ -104,11 +104,11 @@ class _LoginScreenState extends State<LoginScreen> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text('Belum punya akun?',
+                        Text("Don't have an account?",
                             style: TextStyle(color: c.textSecondary)),
                         TextButton(
                           onPressed: () => context.go('/register'),
-                          child: const Text('Daftar'),
+                          child: const Text('Sign up'),
                         ),
                       ],
                     ),
@@ -119,7 +119,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         context.go('/');
                       },
                       icon: const Icon(Icons.person_outline),
-                      label: const Text('Lanjut sebagai Tamu'),
+                      label: const Text('Continue as Guest'),
                       style: OutlinedButton.styleFrom(
                         foregroundColor: c.textPrimary,
                         padding: const EdgeInsets.symmetric(vertical: 14),

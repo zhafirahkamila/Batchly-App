@@ -36,11 +36,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final ok = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Hapus resep?'),
-        content: const Text('Resep dan hasil perhitungan HPP-nya akan dihapus.'),
+        title: const Text('Delete recipe?'),
+        content: const Text('The recipe and its COGS results will be deleted.'),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Batal')),
-          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Hapus')),
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Delete')),
         ],
       ),
     );
@@ -50,7 +50,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
       if (mounted) context.go('/recipes');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -60,7 +60,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final c = AppColors.of(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Detail Resep'),
+        title: const Text('Recipe Details'),
         actions: [
           IconButton(
             tooltip: 'Edit',
@@ -68,7 +68,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             onPressed: () => context.push('/recipes/${widget.recipeId}/edit'),
           ),
           IconButton(
-            tooltip: 'Hapus',
+            tooltip: 'Delete',
             icon: const Icon(Icons.delete_outline),
             onPressed: _confirmDelete,
           ),
@@ -81,7 +81,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             return const Center(child: CircularProgressIndicator());
           }
           if (snap.hasError) {
-            return Center(child: Text('Gagal memuat: ${snap.error}'));
+            return Center(child: Text('Failed to load: ${snap.error}'));
           }
           final r = snap.data!;
           final totalIngredientCost = r.ingredients.fold<double>(
@@ -113,12 +113,12 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                       Row(
                         children: [
                           _HeroStat(
-                            label: 'Total bahan / batch',
+                            label: 'Total ingredients / batch',
                             value: formatRupiah(totalIngredientCost),
                           ),
                           const SizedBox(width: 20),
                           _HeroStat(
-                            label: 'Bahan per ${r.yieldUnit}',
+                            label: 'Ingredients per ${r.yieldUnit}',
                             value: formatRupiah(costPerUnit),
                           ),
                         ],
@@ -127,7 +127,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const SectionHeader(title: 'Bahan-bahan'),
+                const SectionHeader(title: 'Ingredients'),
                 for (final ri in r.ingredients) ...[
                   GlassCard(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
@@ -137,7 +137,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(ri.name ?? 'Bahan #${ri.ingredientId}',
+                              Text(ri.name ?? 'Ingredient #${ri.ingredientId}',
                                   style: TextStyle(
                                     color: c.textPrimary,
                                     fontWeight: FontWeight.w600,
@@ -162,7 +162,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                 ],
                 const SizedBox(height: 20),
                 PrimaryButton(
-                  label: 'Hitung HPP & Harga Jual',
+                  label: 'Calculate COGS & Selling Price',
                   icon: Icons.calculate_rounded,
                   onPressed: () => context.push('/recipes/${r.id}/pricing'),
                 ),

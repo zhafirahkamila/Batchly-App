@@ -36,7 +36,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
     final auth = context.watch<AuthProvider>();
     final greetName = (auth.user?.name.isNotEmpty ?? false)
         ? auth.user!.name.split(' ').first
-        : 'Tamu';
+        : 'Guest';
 
     final items = p.items;
     final priced = items.where((i) => i.marginPercent != null).toList();
@@ -79,24 +79,24 @@ class _DashboardScreenState extends State<DashboardScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('Halo, $greetName 👋',
+                  Text('Hi, $greetName 👋',
                       style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.w600, letterSpacing: -0.2)),
                   const SizedBox(height: 6),
-                  Text(auth.user?.businessName ?? 'Yuk cek margin usaha kamu.',
+                  Text(auth.user?.businessName ?? 'Check your business margins.',
                       style: const TextStyle(color: Colors.white70, fontSize: 13.5)),
                   const SizedBox(height: 26),
                   Row(
                     children: [
-                      _HeroStat(label: 'Total Resep', value: '${items.length}'),
+                      _HeroStat(label: 'Total Recipes', value: '${items.length}'),
                       const SizedBox(width: 28),
                       _HeroStat(
-                        label: 'Rata-rata margin',
+                        label: 'Average margin',
                         value: avgMargin == null
                             ? '-'
                             : '${avgMargin.toStringAsFixed(1)}%',
                       ),
                       const SizedBox(width: 28),
-                      _HeroStat(label: 'Perlu perhatian', value: '$warningCount'),
+                      _HeroStat(label: 'Needs attention', value: '$warningCount'),
                     ],
                   ),
                 ],
@@ -107,7 +107,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
               padding: const EdgeInsets.only(left: 2),
               child: Row(
                 children: [
-                  Text('Produk',
+                  Text('Products',
                       style: TextStyle(
                         color: c.textPrimary,
                         fontSize: 17,
@@ -130,11 +130,11 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 padding: const EdgeInsets.only(top: 40),
                 child: EmptyState(
                   icon: Icons.receipt_long,
-                  title: 'Belum ada produk',
-                  subtitle: 'Tambahkan resep pertama untuk melihat margin di sini.',
+                  title: 'No products yet',
+                  subtitle: 'Add your first recipe to see margins here.',
                   action: FilledButton(
                     onPressed: () => context.go('/recipes'),
-                    child: const Text('Buat Resep'),
+                    child: const Text('Create Recipe'),
                   ),
                 ),
               )
@@ -217,10 +217,10 @@ class _SortMenu extends StatelessWidget {
   const _SortMenu({required this.current, required this.onChanged});
 
   static const _labels = {
-    DashboardSort.marginAsc: 'Margin ↑ (terendah)',
-    DashboardSort.marginDesc: 'Margin ↓ (tertinggi)',
-    DashboardSort.nameAsc: 'Nama A–Z',
-    DashboardSort.newest: 'Terbaru',
+    DashboardSort.marginAsc: 'Margin ↑ (lowest)',
+    DashboardSort.marginDesc: 'Margin ↓ (highest)',
+    DashboardSort.nameAsc: 'Name A–Z',
+    DashboardSort.newest: 'Newest',
   };
 
   @override
@@ -277,9 +277,9 @@ class _DashboardCard extends StatelessWidget {
           SizedBox(height: featured ? 12 : 8),
           Row(
             children: [
-              _MiniCol(label: 'HPP', value: formatRupiah(item.hppPerUnit)),
+              _MiniCol(label: 'COGS', value: formatRupiah(item.hppPerUnit)),
               const SizedBox(width: 18),
-              _MiniCol(label: 'Harga', value: formatRupiah(item.suggestedPrice)),
+              _MiniCol(label: 'Price', value: formatRupiah(item.suggestedPrice)),
               const Spacer(),
               Text('per ${item.yieldUnit}',
                   style: TextStyle(color: c.textSecondary, fontSize: 11)),
