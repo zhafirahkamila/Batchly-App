@@ -29,10 +29,10 @@ class EmptyState extends StatelessWidget {
               width: 84,
               height: 84,
               decoration: BoxDecoration(
-                color: c.accentPrimary.withOpacity(0.12),
+                color: c.primary.withOpacity(0.12),
                 shape: BoxShape.circle,
               ),
-              child: Icon(icon, size: 40, color: c.accentPrimary),
+              child: Icon(icon, size: 40, color: c.primary),
             ),
             const SizedBox(height: 20),
             Text(
@@ -52,10 +52,7 @@ class EmptyState extends StatelessWidget {
                 style: TextStyle(color: c.textSecondary, fontSize: 14),
               ),
             ],
-            if (action != null) ...[
-              const SizedBox(height: 20),
-              action!,
-            ],
+            if (action != null) ...[const SizedBox(height: 20), action!],
           ],
         ),
       ),

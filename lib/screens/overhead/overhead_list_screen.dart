@@ -71,7 +71,11 @@ class _OverheadListScreenState extends State<OverheadListScreen> {
                   Text(
                     'Recurring costs like electricity, gas, packaging, salaries. '
                     'Overhead is used when calculating COGS to allocate monthly costs to each product.',
-                    style: TextStyle(color: c.textSecondary, fontSize: 13, height: 1.5),
+                    style: TextStyle(
+                      color: c.textSecondary,
+                      fontSize: 13,
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 12),
                   if (p.items.isEmpty)
@@ -119,14 +123,14 @@ class _OverheadTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: colors.accentPrimary.withOpacity(0.12),
+              color: colors.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Icon(
               overhead.period == 'per_bulan'
                   ? Icons.calendar_month_outlined
                   : Icons.inventory_2_outlined,
-              color: colors.accentPrimary,
+              color: colors.primary,
             ),
           ),
           const SizedBox(width: 12),
@@ -134,11 +138,13 @@ class _OverheadTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(overhead.name,
-                    style: TextStyle(
-                      color: colors.textPrimary,
-                      fontWeight: FontWeight.w600,
-                    )),
+                Text(
+                  overhead.name,
+                  style: TextStyle(
+                    color: colors.textPrimary,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
                 Text(
                   overhead.period == 'per_bulan' ? 'per month' : 'per batch',
                   style: TextStyle(color: colors.textSecondary, fontSize: 12),

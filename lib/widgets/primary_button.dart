@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
-import '../core/theme/gradients.dart';
 
-/// Full-width gradient button used for hero CTAs (Sign in, Calculate, Save).
+/// Full-width solid button used for hero CTAs (Sign in, Calculate, Save).
 /// Presses run a short scale-down micro-interaction that matches [GlassCard]'s
 /// tactile press feedback.
 class PrimaryButton extends StatefulWidget {
@@ -40,17 +39,7 @@ class _PrimaryButtonState extends State<PrimaryButton> {
       child: Opacity(
         opacity: disabled ? 0.6 : 1,
         child: DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: AppGradients.accent(c),
-            borderRadius: radius,
-            boxShadow: [
-              BoxShadow(
-                color: c.accentPrimary.withOpacity(0.35),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+          decoration: BoxDecoration(color: c.primary, borderRadius: radius),
           child: Material(
             color: Colors.transparent,
             borderRadius: radius,

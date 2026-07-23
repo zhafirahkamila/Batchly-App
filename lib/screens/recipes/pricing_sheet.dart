@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/gradients.dart';
 import '../../core/utils/hpp_math.dart';
 import '../../core/utils/margin_health.dart';
 import '../../core/utils/rupiah_formatter.dart';
@@ -85,9 +84,9 @@ class _PricingSheetState extends State<PricingSheet> {
       final r = await context.read<RecipesProvider>().detail(widget.recipeId);
       // Pre-fill target margin + buffer from the last saved pricing (if any)
       // so re-opening the sheet feels like editing, not starting over.
-      final saved = await context
-          .read<PricingProvider>()
-          .fetchForRecipe(widget.recipeId);
+      final saved = await context.read<PricingProvider>().fetchForRecipe(
+        widget.recipeId,
+      );
       if (!mounted) return;
       final overheads = context.read<OverheadProvider>().items;
       setState(() {
@@ -104,7 +103,9 @@ class _PricingSheetState extends State<PricingSheet> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
       }
     } finally {
       if (mounted) setState(() => _loading = false);
@@ -139,13 +140,15 @@ class _PricingSheetState extends State<PricingSheet> {
         allocs: allocs,
       );
       if (effectiveMargin == null) return null;
-      return computeHpp(HppInputs(
-        recipe: _recipe!,
-        ingredients: ingredients,
-        overheadAllocations: allocs,
-        targetMarginPercent: effectiveMargin,
-        priceBufferPercent: _bufferPercent,
-      ));
+      return computeHpp(
+        HppInputs(
+          recipe: _recipe!,
+          ingredients: ingredients,
+          overheadAllocations: allocs,
+          targetMarginPercent: effectiveMargin,
+          priceBufferPercent: _bufferPercent,
+        ),
+      );
     } catch (_) {
       return null;
     }
@@ -169,13 +172,15 @@ class _PricingSheetState extends State<PricingSheet> {
     // Compute HPP with a placeholder margin so we can read hppPerUnit back.
     // Buffer flows through here so the derived margin matches the same
     // buffered HPP the backend will price against.
-    final hppOnly = computeHpp(HppInputs(
-      recipe: recipe,
-      ingredients: ingredients,
-      overheadAllocations: allocs,
-      targetMarginPercent: 0,
-      priceBufferPercent: _bufferPercent,
-    ));
+    final hppOnly = computeHpp(
+      HppInputs(
+        recipe: recipe,
+        ingredients: ingredients,
+        overheadAllocations: allocs,
+        targetMarginPercent: 0,
+        priceBufferPercent: _bufferPercent,
+      ),
+    );
     final hpp = hppOnly.hppPerUnit;
     if (!hpp.isFinite) return null;
     final derived = ((price - hpp) / price) * 100;
@@ -191,7 +196,11 @@ class _PricingSheetState extends State<PricingSheet> {
       final ing = ingProv.byId(row.ingredientId);
       if (ing == null) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('An ingredient is missing — refresh Pantry and retry.')),
+          const SnackBar(
+            content: Text(
+              'An ingredient is missing — refresh Pantry and retry.',
+            ),
+          ),
         );
         return;
       }
@@ -208,25 +217,32 @@ class _PricingSheetState extends State<PricingSheet> {
     );
     if (marginToSubmit == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(
-          _mode == _PricingMode.competitor
-              ? 'Enter a competitor price first.'
-              : 'Cannot calculate — check inputs.',
-        )),
+        SnackBar(
+          content: Text(
+            _mode == _PricingMode.competitor
+                ? 'Enter a competitor price first.'
+                : 'Cannot calculate — check inputs.',
+          ),
+        ),
       );
       return;
     }
     final submitAllocs = _allocs
         .where((a) => a.included)
-        .map((a) => (overheadCostId: a.overhead.id, estimatedMonthlyProduction: a.emp))
+        .map(
+          (a) => (
+            overheadCostId: a.overhead.id,
+            estimatedMonthlyProduction: a.emp,
+          ),
+        )
         .toList();
     final pricingProv = context.read<PricingProvider>();
     final result = await pricingProv.calculate(
-          recipeId: _recipe!.id,
-          targetMarginPercent: marginToSubmit,
-          allocations: submitAllocs,
-          priceBufferPercent: _bufferPercent,
-        );
+      recipeId: _recipe!.id,
+      targetMarginPercent: marginToSubmit,
+      allocations: submitAllocs,
+      priceBufferPercent: _bufferPercent,
+    );
     if (!mounted) return;
     if (result != null) {
       // Clear so a subsequent open of the sheet starts fresh instead of
@@ -273,9 +289,19 @@ class _PricingSheetState extends State<PricingSheet> {
               return Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(20), child: left)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: left,
+                    ),
+                  ),
                   Container(width: 1, height: double.infinity, color: c.border),
-                  Expanded(child: SingleChildScrollView(padding: const EdgeInsets.all(20), child: right)),
+                  Expanded(
+                    child: SingleChildScrollView(
+                      padding: const EdgeInsets.all(20),
+                      child: right,
+                    ),
+                  ),
                 ],
               );
             }
@@ -321,7 +347,7 @@ class _PricingSheetState extends State<PricingSheet> {
           GlassCard(
             child: Row(
               children: [
-                Icon(Icons.info_outline, color: c.accentPrimary),
+                Icon(Icons.info_outline, color: c.primary),
                 const SizedBox(width: 12),
                 const Expanded(
                   child: Text(
@@ -332,13 +358,12 @@ class _PricingSheetState extends State<PricingSheet> {
             ),
           )
         else
-          ..._allocs.map((a) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: _OverheadRow(
-                  edit: a,
-                  onChanged: () => setState(() {}),
-                ),
-              )),
+          ..._allocs.map(
+            (a) => Padding(
+              padding: const EdgeInsets.only(bottom: 10),
+              child: _OverheadRow(edit: a, onChanged: () => setState(() {})),
+            ),
+          ),
         TextButton.icon(
           icon: const Icon(Icons.add),
           label: const Text('Add Overhead'),
@@ -404,7 +429,9 @@ class _PricingSheetState extends State<PricingSheet> {
           children: [
             Icon(Icons.calculate_outlined, color: c.textSecondary),
             const SizedBox(width: 12),
-            const Expanded(child: Text('Fill in recipe ingredients to see estimates.')),
+            const Expanded(
+              child: Text('Fill in recipe ingredients to see estimates.'),
+            ),
           ],
         ),
       );
@@ -416,7 +443,7 @@ class _PricingSheetState extends State<PricingSheet> {
         ClipRRect(
           borderRadius: BorderRadius.circular(22),
           child: DecoratedBox(
-            decoration: BoxDecoration(gradient: AppGradients.accent(c)),
+            decoration: BoxDecoration(),
             child: Padding(
               padding: const EdgeInsets.all(20),
               child: Column(
@@ -424,8 +451,10 @@ class _PricingSheetState extends State<PricingSheet> {
                 children: [
                   Row(
                     children: [
-                      const Text('Selling price per unit',
-                          style: TextStyle(color: Colors.white70)),
+                      const Text(
+                        'Selling price per unit',
+                        style: TextStyle(color: Colors.white70),
+                      ),
                       const Spacer(),
                       MarginBadge(marginPercent: b.marginPercent),
                     ],
@@ -469,32 +498,63 @@ class _PricingSheetState extends State<PricingSheet> {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(line.name, style: TextStyle(color: c.textPrimary)),
-                            Text('${_fmt(line.qtyUsed)} ${line.unit}',
-                                style: TextStyle(color: c.textSecondary, fontSize: 11)),
+                            Text(
+                              line.name,
+                              style: TextStyle(color: c.textPrimary),
+                            ),
+                            Text(
+                              '${_fmt(line.qtyUsed)} ${line.unit}',
+                              style: TextStyle(
+                                color: c.textSecondary,
+                                fontSize: 11,
+                              ),
+                            ),
                           ],
                         ),
                       ),
-                      Text(formatRupiah(line.lineCost),
-                          style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
+                      Text(
+                        formatRupiah(line.lineCost),
+                        style: TextStyle(
+                          color: c.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ],
                   ),
                 ),
               const Divider(height: 20),
               Row(
                 children: [
-                  Expanded(child: Text('Total ingredients / batch',
-                      style: TextStyle(color: c.textSecondary))),
-                  Text(formatRupiah(b.ingredientCostTotal),
-                      style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
+                  Expanded(
+                    child: Text(
+                      'Total ingredients / batch',
+                      style: TextStyle(color: c.textSecondary),
+                    ),
+                  ),
+                  Text(
+                    formatRupiah(b.ingredientCostTotal),
+                    style: TextStyle(
+                      color: c.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
               Row(
                 children: [
-                  Expanded(child: Text('Ingredients per ${b.yieldUnit}',
-                      style: TextStyle(color: c.textSecondary))),
-                  Text(formatRupiah(b.ingredientCostPerUnit),
-                      style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
+                  Expanded(
+                    child: Text(
+                      'Ingredients per ${b.yieldUnit}',
+                      style: TextStyle(color: c.textSecondary),
+                    ),
+                  ),
+                  Text(
+                    formatRupiah(b.ingredientCostPerUnit),
+                    style: TextStyle(
+                      color: c.textPrimary,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -516,29 +576,49 @@ class _PricingSheetState extends State<PricingSheet> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(o.name, style: TextStyle(color: c.textPrimary)),
+                              Text(
+                                o.name,
+                                style: TextStyle(color: c.textPrimary),
+                              ),
                               Text(
                                 o.period == 'per_bulan'
                                     ? '${formatRupiah(o.amount)}/month ÷ ${o.estimatedMonthlyProduction} units'
                                     : '${formatRupiah(o.amount)}/batch ÷ ${_fmt(b.yieldQty)} ${b.yieldUnit}',
-                                style: TextStyle(color: c.textSecondary, fontSize: 11),
+                                style: TextStyle(
+                                  color: c.textSecondary,
+                                  fontSize: 11,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                        Text(formatRupiah(o.allocatedPerUnit),
-                            style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
+                        Text(
+                          formatRupiah(o.allocatedPerUnit),
+                          style: TextStyle(
+                            color: c.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
                       ],
                     ),
                   ),
                 const Divider(height: 20),
                 Row(
                   children: [
-                    Expanded(child: Text('Overhead per ${b.yieldUnit}',
+                    Expanded(
+                      child: Text(
+                        'Overhead per ${b.yieldUnit}',
 
-                        style: TextStyle(color: c.textSecondary))),
-                    Text(formatRupiah(b.totalOverheadPerUnit),
-                        style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w700)),
+                        style: TextStyle(color: c.textSecondary),
+                      ),
+                    ),
+                    Text(
+                      formatRupiah(b.totalOverheadPerUnit),
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                   ],
                 ),
               ],
@@ -553,7 +633,8 @@ class _PricingSheetState extends State<PricingSheet> {
     );
   }
 
-  String _fmt(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();
+  String _fmt(double q) =>
+      q == q.roundToDouble() ? q.toInt().toString() : q.toString();
 }
 
 class _MiniStat extends StatelessWidget {
@@ -566,7 +647,10 @@ class _MiniStat extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white70, fontSize: 11)),
+        Text(
+          label,
+          style: const TextStyle(color: Colors.white70, fontSize: 11),
+        ),
         const SizedBox(height: 2),
         AnimatedNumber(
           value: value,
@@ -596,12 +680,14 @@ class _MarginSlider extends StatelessWidget {
         children: [
           Row(
             children: [
-              Text('${marginPercent.toStringAsFixed(1)}%',
-                  style: TextStyle(
-                    color: c.textPrimary,
-                    fontSize: 22,
-                    fontWeight: FontWeight.w700,
-                  )),
+              Text(
+                '${marginPercent.toStringAsFixed(1)}%',
+                style: TextStyle(
+                  color: c.textPrimary,
+                  fontSize: 22,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
               const Spacer(),
               MarginBadge(marginPercent: marginPercent),
             ],
@@ -703,7 +789,8 @@ class _CompetitorPriceInput extends StatelessWidget {
             decoration: const InputDecoration(
               labelText: 'Competitor / target price',
               prefixText: 'Rp ',
-              helperText: 'App will match this price and back-calculate the margin.',
+              helperText:
+                  'App will match this price and back-calculate the margin.',
             ),
             onChanged: (v) {
               final cleaned = v.replaceAll(',', '').replaceAll('.', '');
@@ -714,8 +801,10 @@ class _CompetitorPriceInput extends StatelessWidget {
           const SizedBox(height: 10),
           Row(
             children: [
-              Text('Implied margin',
-                  style: TextStyle(color: c.textSecondary, fontSize: 13)),
+              Text(
+                'Implied margin',
+                style: TextStyle(color: c.textSecondary, fontSize: 13),
+              ),
               const Spacer(),
               MarginBadge(marginPercent: impliedMargin),
             ],
@@ -751,8 +840,13 @@ class _OverheadRow extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(edit.overhead.name,
-                        style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600)),
+                    Text(
+                      edit.overhead.name,
+                      style: TextStyle(
+                        color: c.textPrimary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
                     Text(
                       '${formatRupiah(edit.overhead.amount)} · ${edit.overhead.period == 'per_bulan' ? 'per month' : 'per batch'}',
                       style: TextStyle(color: c.textSecondary, fontSize: 12),
@@ -769,7 +863,8 @@ class _OverheadRow extends StatelessWidget {
                 initialValue: edit.emp.toString(),
                 decoration: const InputDecoration(
                   labelText: 'Estimated production per month',
-                  helperText: 'Used to divide this monthly cost across each unit.',
+                  helperText:
+                      'Used to divide this monthly cost across each unit.',
                 ),
                 keyboardType: TextInputType.number,
                 onChanged: (v) {

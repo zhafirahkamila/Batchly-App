@@ -26,7 +26,7 @@ class _RowEdit {
   final TextEditingController qtyCtrl;
   String? unit;
   _RowEdit({this.ingredientId, String? qty, this.unit})
-      : qtyCtrl = TextEditingController(text: qty ?? '');
+    : qtyCtrl = TextEditingController(text: qty ?? '');
   void dispose() => qtyCtrl.dispose();
 }
 
@@ -71,21 +71,28 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
         }
         _rows
           ..clear()
-          ..addAll(r.ingredients.map((ri) => _RowEdit(
+          ..addAll(
+            r.ingredients.map(
+              (ri) => _RowEdit(
                 ingredientId: ri.ingredientId,
                 qty: _fmt(ri.qtyUsed),
                 unit: ri.unit,
-              )));
+              ),
+            ),
+          );
         if (_rows.isEmpty) _rows.add(_RowEdit());
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed to load: $e')));
       }
     }
   }
 
-  String _fmt(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();
+  String _fmt(double q) =>
+      q == q.roundToDouble() ? q.toInt().toString() : q.toString();
 
   @override
   void dispose() {
@@ -111,15 +118,19 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       final qty = double.tryParse(r.qtyCtrl.text.replaceAll(',', '.'));
       if (qty == null || qty <= 0) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('All ingredient quantities must be > 0')),
+          const SnackBar(
+            content: Text('All ingredient quantities must be > 0'),
+          ),
         );
         return;
       }
-      items.add(RecipeIngredient(
-        ingredientId: r.ingredientId!,
-        qtyUsed: qty,
-        unit: r.unit ?? 'gram',
-      ));
+      items.add(
+        RecipeIngredient(
+          ingredientId: r.ingredientId!,
+          qtyUsed: qty,
+          unit: r.unit ?? 'gram',
+        ),
+      );
     }
 
     setState(() => _busy = true);
@@ -145,7 +156,9 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
       if (mounted) context.go('/recipes/${saved.id}');
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -170,7 +183,8 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                 TextFormField(
                   controller: _nameCtrl,
                   decoration: const InputDecoration(labelText: 'Recipe name'),
-                  validator: (v) => (v == null || v.trim().isEmpty) ? 'Required' : null,
+                  validator: (v) =>
+                      (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
                 const SizedBox(height: 12),
                 Row(
@@ -178,10 +192,16 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _yieldQtyCtrl,
-                        decoration: const InputDecoration(labelText: 'Yield per batch'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Yield per batch',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         validator: (v) {
-                          final n = double.tryParse((v ?? '').replaceAll(',', '.'));
+                          final n = double.tryParse(
+                            (v ?? '').replaceAll(',', '.'),
+                          );
                           if (n == null || n <= 0) return 'Must be > 0';
                           return null;
                         },
@@ -198,21 +218,25 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                   ],
                 ),
                 const SizedBox(height: 20),
-                Text('Ingredients',
-                    style: TextStyle(
-                      color: c.textPrimary,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                    )),
+                Text(
+                  'Ingredients',
+                  style: TextStyle(
+                    color: c.textPrimary,
+                    fontSize: 15,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
                 const SizedBox(height: 8),
                 if (ingredients.isEmpty)
                   GlassCard(
                     child: Row(
                       children: [
-                        Icon(Icons.info_outline, color: c.accentPrimary),
+                        Icon(Icons.info_outline, color: c.primary),
                         const SizedBox(width: 12),
                         const Expanded(
-                          child: Text('No ingredients yet. Add ingredients first in the Pantry tab.'),
+                          child: Text(
+                            'No ingredients yet. Add ingredients first in the Pantry tab.',
+                          ),
                         ),
                       ],
                     ),
@@ -226,11 +250,13 @@ class _RecipeFormScreenState extends State<RecipeFormScreen> {
                       child: _IngredientRow(
                         row: row,
                         allIngredients: ingredients,
-                        onRemove: _rows.length == 1 ? null : () {
-                          setState(() {
-                            _rows.removeAt(idx).dispose();
-                          });
-                        },
+                        onRemove: _rows.length == 1
+                            ? null
+                            : () {
+                                setState(() {
+                                  _rows.removeAt(idx).dispose();
+                                });
+                              },
                         onChanged: () => setState(() {}),
                       ),
                     );
@@ -322,7 +348,9 @@ class _IngredientRow extends StatelessWidget {
                 child: TextFormField(
                   controller: row.qtyCtrl,
                   decoration: const InputDecoration(labelText: 'Qty'),
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                 ),
               ),
               const SizedBox(width: 12),

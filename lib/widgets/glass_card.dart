@@ -1,12 +1,8 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../core/theme/app_colors.dart';
 
-/// A rounded card. In dark mode it renders as a subtle glass panel (backdrop
-/// blur + translucent fill) so it feels layered over the dark canvas; in
-/// light mode it's a plain white card with a hairline border.
+/// A rounded card with a flat fill and subtle border.
 ///
 /// When [onTap] is provided, the card gains a soft press micro-interaction
 /// (scale 0.97 on pointer-down, ~150ms ease).
@@ -42,31 +38,14 @@ class _GlassCardState extends State<GlassCard> {
 
     Widget content = Padding(padding: widget.padding, child: widget.child);
 
-    if (c.useGlassBlur) {
-      content = ClipRRect(
+    content = Container(
+      decoration: BoxDecoration(
+        color: c.surface,
         borderRadius: borderRadius,
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.04),
-              borderRadius: borderRadius,
-              border: Border.all(color: c.border, width: 1),
-            ),
-            child: content,
-          ),
-        ),
-      );
-    } else {
-      content = Container(
-        decoration: BoxDecoration(
-          color: c.surface,
-          borderRadius: borderRadius,
-          border: Border.all(color: c.border, width: 1),
-        ),
-        child: content,
-      );
-    }
+        border: Border.all(color: c.border, width: 1),
+      ),
+      child: content,
+    );
 
     if (_interactive) {
       content = Material(

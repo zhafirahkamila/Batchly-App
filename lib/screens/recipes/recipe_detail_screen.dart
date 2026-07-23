@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/gradients.dart';
 import '../../core/utils/ingredient_categories.dart';
 import '../../core/utils/rupiah_formatter.dart';
 import '../../models/pricing.dart';
@@ -93,7 +92,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     });
     final phase1Elapsed = DateTime.now().difference(startedAt).inMilliseconds;
     debugPrint(
-        '[RecipeDetail] recipe rendered in ${phase1Elapsed}ms id=${widget.recipeId} ingredients=${recipe.ingredients.length}');
+      '[RecipeDetail] recipe rendered in ${phase1Elapsed}ms id=${widget.recipeId} ingredients=${recipe.ingredients.length}',
+    );
 
     // Phase 2 — pricing. Independent of recipe render. A 404 returns null
     // (recipe simply has no pricing yet); any other error flips the pricing
@@ -118,7 +118,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     }
     final totalElapsed = DateTime.now().difference(startedAt).inMilliseconds;
     debugPrint(
-        '[RecipeDetail] load() done in ${totalElapsed}ms id=${widget.recipeId} pricing=${_pricing != null}');
+      '[RecipeDetail] load() done in ${totalElapsed}ms id=${widget.recipeId} pricing=${_pricing != null}',
+    );
   }
 
   Future<void> _refetchPricing() async {
@@ -177,7 +178,8 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
   @override
   Widget build(BuildContext context) {
     debugPrint(
-        '[RecipeDetail] build id=${widget.recipeId} loading=$_loading error=$_error recipe=${_recipe?.name}');
+      '[RecipeDetail] build id=${widget.recipeId} loading=$_loading error=$_error recipe=${_recipe?.name}',
+    );
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -263,9 +265,11 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
             children: [
               Icon(Icons.help_outline, size: 40, color: c.textPrimary),
               const SizedBox(height: 12),
-              Text('Recipe #${widget.recipeId} could not be loaded.',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: c.textPrimary)),
+              Text(
+                'Recipe #${widget.recipeId} could not be loaded.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: c.textPrimary),
+              ),
               const SizedBox(height: 16),
               TextButton.icon(
                 onPressed: _load,
@@ -294,10 +298,10 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
     final kemasanSubtotal = subtotalOf(kemasan);
     final totalIngredientCost = bahanBakuSubtotal + kemasanSubtotal;
     final costPerUnit = r.yieldQty > 0 ? totalIngredientCost / r.yieldQty : 0.0;
-    final bahanBakuPerUnit =
-        r.yieldQty > 0 ? bahanBakuSubtotal / r.yieldQty : 0.0;
-    final kemasanPerUnit =
-        r.yieldQty > 0 ? kemasanSubtotal / r.yieldQty : 0.0;
+    final bahanBakuPerUnit = r.yieldQty > 0
+        ? bahanBakuSubtotal / r.yieldQty
+        : 0.0;
+    final kemasanPerUnit = r.yieldQty > 0 ? kemasanSubtotal / r.yieldQty : 0.0;
     final hasPricing = _pricing != null && _pricing!.suggestedPrice != null;
 
     return RefreshIndicator(
@@ -382,7 +386,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               onTap: () => context.push('/recipes/${r.id}/edit'),
               child: Row(
                 children: [
-                  Icon(Icons.playlist_add_rounded, color: c.accentPrimary),
+                  Icon(Icons.playlist_add_rounded, color: c.primary),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Column(
@@ -416,13 +420,18 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
               _IngredientRow(ri: ri, fmt: _fmt),
               const SizedBox(height: 8),
             ],
-            _GroupSubtotal(label: 'Subtotal Bahan Baku', value: bahanBakuSubtotal),
+            _GroupSubtotal(
+              label: 'Subtotal Bahan Baku',
+              value: bahanBakuSubtotal,
+            ),
             const SizedBox(height: 18),
             _IngredientGroupHeader(label: 'Kemasan'),
             if (kemasan.isEmpty)
               GlassCard(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 12,
+                ),
                 child: Row(
                   children: [
                     Icon(Icons.inventory_2_outlined, color: c.textSecondary),
@@ -430,10 +439,7 @@ class _RecipeDetailScreenState extends State<RecipeDetailScreen> {
                     Expanded(
                       child: Text(
                         'Belum ada kemasan ditambahkan',
-                        style: TextStyle(
-                          color: c.textSecondary,
-                          fontSize: 13,
-                        ),
+                        style: TextStyle(color: c.textSecondary, fontSize: 13),
                       ),
                     ),
                   ],
@@ -496,7 +502,7 @@ class _HeroStat extends StatelessWidget {
 ///     understands why no numbers are shown yet.
 ///   - No pricing yet: preview of ingredient cost per unit + hint to add
 ///     overhead + margin for full HPP.
-///   - Pricing calculated: gradient card with the selling price + COGS +
+///   - Pricing calculated: flat accent card with the selling price + COGS +
 ///     margin so the user sees the outcome without leaving the detail page.
 class _PricingCard extends StatelessWidget {
   final Pricing? pricing;
@@ -545,7 +551,7 @@ class _PricingCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(Icons.calculate_outlined, color: c.accentPrimary),
+                Icon(Icons.calculate_outlined, color: c.primary),
                 const SizedBox(width: 12),
                 Text(
                   'No pricing yet',
@@ -562,7 +568,10 @@ class _PricingCard extends StatelessWidget {
               Text.rich(
                 TextSpan(
                   style: TextStyle(
-                      color: c.textSecondary, fontSize: 13, height: 1.4),
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                   children: [
                     const TextSpan(text: 'Bahan baku: '),
                     TextSpan(
@@ -588,7 +597,10 @@ class _PricingCard extends StatelessWidget {
               Text.rich(
                 TextSpan(
                   style: TextStyle(
-                      color: c.textSecondary, fontSize: 13, height: 1.4),
+                    color: c.textSecondary,
+                    fontSize: 13,
+                    height: 1.4,
+                  ),
                   children: [
                     const TextSpan(text: 'Ingredient cost only: '),
                     TextSpan(
@@ -619,7 +631,8 @@ class _PricingCard extends StatelessWidget {
     // A pricing row written before the backend started returning the
     // component breakdown: hpp+price are real, but the three per-unit fields
     // are zeroed out. Show a nudge instead of a misleading Rp 0 breakdown.
-    final stale = p.ingredientCostPerUnit == 0 &&
+    final stale =
+        p.ingredientCostPerUnit == 0 &&
         p.packagingCostPerUnit == 0 &&
         p.overheadCostPerUnit == 0 &&
         p.hppPerUnit > 0;
@@ -627,7 +640,7 @@ class _PricingCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(22),
       child: DecoratedBox(
-        decoration: BoxDecoration(gradient: AppGradients.accent(c)),
+        decoration: BoxDecoration(color: c.primary),
         child: Padding(
           padding: const EdgeInsets.all(20),
           child: Column(
@@ -647,8 +660,11 @@ class _PricingCard extends StatelessWidget {
               if (stale)
                 Row(
                   children: [
-                    const Icon(Icons.info_outline,
-                        color: Colors.white70, size: 16),
+                    const Icon(
+                      Icons.info_outline,
+                      color: Colors.white70,
+                      size: 16,
+                    ),
                     const SizedBox(width: 8),
                     const Expanded(
                       child: Text(
@@ -687,8 +703,7 @@ class _PricingCard extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   _BreakdownRow(
-                    label:
-                        'Buffer (+${_fmtBuffer(p.priceBufferPercent)}%)',
+                    label: 'Buffer (+${_fmtBuffer(p.priceBufferPercent)}%)',
                     value: p.hppPerUnit - p.hppBeforeBuffer,
                   ),
                   const SizedBox(height: 8),
@@ -721,10 +736,7 @@ class _PricingCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 14),
-              _MiniStat(
-                label: 'Profit / $yieldUnit',
-                value: profit,
-              ),
+              _MiniStat(label: 'Profit / $yieldUnit', value: profit),
             ],
           ),
         ),
@@ -851,20 +863,14 @@ class _IngredientRow extends StatelessWidget {
                 const SizedBox(height: 2),
                 Text(
                   '${fmt(ri.qtyUsed)} ${ri.unit}',
-                  style: TextStyle(
-                    color: c.textSecondary,
-                    fontSize: 12,
-                  ),
+                  style: TextStyle(color: c.textSecondary, fontSize: 12),
                 ),
               ],
             ),
           ),
           Text(
             ri.lineCost == null ? '-' : formatRupiah(ri.lineCost),
-            style: TextStyle(
-              color: c.textPrimary,
-              fontWeight: FontWeight.w600,
-            ),
+            style: TextStyle(color: c.textPrimary, fontWeight: FontWeight.w600),
           ),
         ],
       ),

@@ -3,9 +3,8 @@ import 'package:flutter/material.dart';
 /// Semantic color tokens for Batchly. Never hardcode hex in widgets — pull from
 /// `AppColors.of(context)` so the same widget renders correctly in both modes.
 ///
-/// The "Batchly Dark" identity is the primary brand feel: dark charcoal-purple
-/// canvas with a purple → pink gradient hero. Light mode keeps the same gradient
-/// family (adjusted for contrast on a warm off-white) and drops glassmorphism.
+/// The Batchly identity is a flat teal-forward palette with warm neutrals and
+/// no gradient or glassmorphism surfaces.
 class AppColors {
   final Color background;
   final Color surface;
@@ -13,8 +12,7 @@ class AppColors {
   final Color textPrimary;
   final Color textSecondary;
   final Color border;
-  final List<Color> accentGradient;
-  final Color accentPrimary;
+  final Color primary;
   final Color marginGoodBg;
   final Color marginGoodText;
   final Color marginWarningBg;
@@ -30,8 +28,7 @@ class AppColors {
     required this.textPrimary,
     required this.textSecondary,
     required this.border,
-    required this.accentGradient,
-    required this.accentPrimary,
+    required this.primary,
     required this.marginGoodBg,
     required this.marginGoodText,
     required this.marginWarningBg,
@@ -42,38 +39,36 @@ class AppColors {
   });
 
   static const dark = AppColors(
-    background: Color(0xFF121016),
-    surface: Color(0xFF17151D),
-    surfaceElevated: Color(0xFF1F1C26),
-    textPrimary: Color(0xFFF5F3F8),
-    textSecondary: Color(0xFF8F8A9C),
+    background: Color(0xFF0E1116),
+    surface: Color(0xFF161A21),
+    surfaceElevated: Color(0xFF1F242D),
+    textPrimary: Color(0xFFF2F3F5),
+    textSecondary: Color(0xFF8B93A1),
     border: Color(0x14FFFFFF),
-    accentGradient: [Color(0xFF7B5CFF), Color(0xFFFF6FA5)],
-    accentPrimary: Color(0xFF7B5CFF),
-    marginGoodBg: Color(0x3D1D9E75),
-    marginGoodText: Color(0xFF4FE0B0),
-    marginWarningBg: Color(0x3DEF9F27),
-    marginWarningText: Color(0xFFFFC271),
-    marginDangerBg: Color(0x3DF0997B),
-    marginDangerText: Color(0xFFFF8A8A),
-    useGlassBlur: true,
+    primary: Color(0xFF12805F),
+    marginGoodBg: Color(0x262E9D6E),
+    marginGoodText: Color(0xFF4ADE9A),
+    marginWarningBg: Color(0x26C27832),
+    marginWarningText: Color(0xFFF0A868),
+    marginDangerBg: Color(0x26F97066),
+    marginDangerText: Color(0xFFFF8A80),
+    useGlassBlur: false,
   );
 
   static const light = AppColors(
-    background: Color(0xFFFAF9FC),
+    background: Color(0xFFF7F8FA),
     surface: Color(0xFFFFFFFF),
     surfaceElevated: Color(0xFFFFFFFF),
-    textPrimary: Color(0xFF1C1B22),
-    textSecondary: Color(0xFF6B6577),
-    border: Color(0xFFECE9F2),
-    accentGradient: [Color(0xFF6A4CFF), Color(0xFFFF5B96)],
-    accentPrimary: Color(0xFF6A4CFF),
-    marginGoodBg: Color(0xFFE1F5EE),
-    marginGoodText: Color(0xFF0F6E56),
-    marginWarningBg: Color(0xFFFAECE7),
-    marginWarningText: Color(0xFF993C1D),
-    marginDangerBg: Color(0xFFFDE2E2),
-    marginDangerText: Color(0xFFB3261E),
+    textPrimary: Color(0xFF101828),
+    textSecondary: Color(0xFF667085),
+    border: Color(0xFFE4E7EC),
+    primary: Color(0xFF0E6B52),
+    marginGoodBg: Color(0xFFECFDF3),
+    marginGoodText: Color(0xFF027A48),
+    marginWarningBg: Color(0xFFFFFAEB),
+    marginWarningText: Color(0xFFB54708),
+    marginDangerBg: Color(0xFFFEF3F2),
+    marginDangerText: Color(0xFFB42318),
     useGlassBlur: false,
   );
 

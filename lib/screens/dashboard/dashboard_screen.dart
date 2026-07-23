@@ -156,14 +156,9 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 ],
               )
             else if (items.isEmpty && p.error != null)
-              _DashboardErrorCard(
-                message: p.error!,
-                onRetry: () => p.refresh(),
-              )
+              _DashboardErrorCard(message: p.error!, onRetry: () => p.refresh())
             else if (items.isEmpty)
-              _DashboardEmptyCard(
-                onCreate: () => context.go('/recipes'),
-              )
+              _DashboardEmptyCard(onCreate: () => context.go('/recipes'))
             else
               LayoutBuilder(
                 builder: (context, constraints) {
@@ -291,11 +286,10 @@ class _DashboardEmptyCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              color: c.accentPrimary.withOpacity(0.12),
+              color: c.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Icon(Icons.calculate_rounded,
-                color: c.accentPrimary, size: 26),
+            child: Icon(Icons.calculate_rounded, color: c.primary, size: 26),
           ),
           const SizedBox(height: 16),
           Text(

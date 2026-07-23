@@ -303,10 +303,10 @@ class _IngredientTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              color: colors.accentPrimary.withOpacity(0.12),
+              color: colors.primary.withOpacity(0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(Icons.egg_alt_outlined, color: colors.accentPrimary),
+            child: Icon(Icons.egg_alt_outlined, color: colors.primary),
           ),
           const SizedBox(width: 12),
           Expanded(

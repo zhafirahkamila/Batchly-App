@@ -15,8 +15,9 @@ class AppTheme {
 
   static ThemeData _build(AppColors c, Brightness b) {
     final base = b == Brightness.dark ? ThemeData.dark() : ThemeData.light();
-    final baseText = GoogleFonts.plusJakartaSansTextTheme(base.textTheme)
-        .apply(bodyColor: c.textPrimary, displayColor: c.textPrimary);
+    final baseText = GoogleFonts.plusJakartaSansTextTheme(
+      base.textTheme,
+    ).apply(bodyColor: c.textPrimary, displayColor: c.textPrimary);
 
     // Explicit type scale — hero numbers get to breathe, section headers stay
     // tight, meta text is comfortably small. Applied on top of Plus Jakarta
@@ -61,8 +62,7 @@ class AppTheme {
                   ? const ColorScheme.dark()
                   : const ColorScheme.light())
               .copyWith(
-                primary: c.accentPrimary,
-                secondary: c.accentGradient.last,
+                primary: c.primary,
                 surface: c.surface,
                 onPrimary: Colors.white,
                 onSurface: c.textPrimary,
@@ -107,7 +107,7 @@ class AppTheme {
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: c.accentPrimary, width: 1.4),
+          borderSide: BorderSide(color: c.primary, width: 1.4),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -116,7 +116,7 @@ class AppTheme {
       ),
       elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-          backgroundColor: c.accentPrimary,
+          backgroundColor: c.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -128,7 +128,7 @@ class AppTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: c.accentPrimary,
+          backgroundColor: c.primary,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(14),
@@ -139,7 +139,7 @@ class AppTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          foregroundColor: c.accentPrimary,
+          foregroundColor: c.primary,
           textStyle: const TextStyle(fontWeight: FontWeight.w600),
         ),
       ),
@@ -152,14 +152,14 @@ class AppTheme {
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: c.surface,
-        selectedItemColor: c.accentPrimary,
+        selectedItemColor: c.primary,
         unselectedItemColor: c.textSecondary,
         showUnselectedLabels: true,
         type: BottomNavigationBarType.fixed,
         elevation: 0,
       ),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: c.accentPrimary,
+        backgroundColor: c.primary,
         foregroundColor: Colors.white,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
@@ -167,45 +167,50 @@ class AppTheme {
       checkboxTheme: CheckboxThemeData(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
         side: BorderSide(color: c.textSecondary, width: 1.4),
-        fillColor: WidgetStateProperty.resolveWith((states) =>
-            states.contains(WidgetState.selected)
-                ? c.accentPrimary
-                : Colors.transparent),
+        fillColor: WidgetStateProperty.resolveWith(
+          (states) => states.contains(WidgetState.selected)
+              ? c.primary
+              : Colors.transparent,
+        ),
         checkColor: WidgetStateProperty.all(Colors.white),
       ),
       switchTheme: SwitchThemeData(
-        thumbColor: WidgetStateProperty.resolveWith((s) =>
-            s.contains(WidgetState.selected) ? Colors.white : c.textSecondary),
-        trackColor: WidgetStateProperty.resolveWith((s) =>
-            s.contains(WidgetState.selected) ? c.accentPrimary : c.border),
+        thumbColor: WidgetStateProperty.resolveWith(
+          (s) =>
+              s.contains(WidgetState.selected) ? Colors.white : c.textSecondary,
+        ),
+        trackColor: WidgetStateProperty.resolveWith(
+          (s) => s.contains(WidgetState.selected) ? c.primary : c.border,
+        ),
         trackOutlineColor: WidgetStateProperty.all(Colors.transparent),
       ),
       sliderTheme: SliderThemeData(
-        activeTrackColor: c.accentPrimary,
+        activeTrackColor: c.primary,
         inactiveTrackColor: c.border,
-        thumbColor: c.accentPrimary,
-        overlayColor: c.accentPrimary.withOpacity(0.12),
-        valueIndicatorColor: c.accentPrimary,
+        thumbColor: c.primary,
+        overlayColor: c.primary.withOpacity(0.12),
+        valueIndicatorColor: c.primary,
         valueIndicatorTextStyle: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w600,
         ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
-        color: c.accentPrimary,
+        color: c.primary,
         linearTrackColor: c.border,
         circularTrackColor: c.border,
       ),
       segmentedButtonTheme: SegmentedButtonThemeData(
         style: ButtonStyle(
-          backgroundColor: WidgetStateProperty.resolveWith((s) =>
-              s.contains(WidgetState.selected)
-                  ? c.accentPrimary.withOpacity(0.14)
-                  : Colors.transparent),
-          foregroundColor: WidgetStateProperty.resolveWith((s) =>
-              s.contains(WidgetState.selected)
-                  ? c.accentPrimary
-                  : c.textSecondary),
+          backgroundColor: WidgetStateProperty.resolveWith(
+            (s) => s.contains(WidgetState.selected)
+                ? c.primary.withOpacity(0.14)
+                : Colors.transparent,
+          ),
+          foregroundColor: WidgetStateProperty.resolveWith(
+            (s) =>
+                s.contains(WidgetState.selected) ? c.primary : c.textSecondary,
+          ),
           side: WidgetStateProperty.all(BorderSide(color: c.border)),
           shape: WidgetStateProperty.all(
             RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),

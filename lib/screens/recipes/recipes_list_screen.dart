@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/gradients.dart';
 import '../../models/pricing.dart';
 import '../../models/recipe.dart';
 import '../../providers/auth_provider.dart';
@@ -148,7 +147,7 @@ class _RecipeCard extends StatelessWidget {
             width: 52,
             height: 52,
             decoration: BoxDecoration(
-              gradient: AppGradients.accent(c),
+              color: c.primary,
               borderRadius: BorderRadius.circular(14),
             ),
             child: const Icon(Icons.cookie_outlined, color: Colors.white),

@@ -52,7 +52,8 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
     _hydrated = true;
   }
 
-  String _fmtQty(double q) => q == q.roundToDouble() ? q.toInt().toString() : q.toString();
+  String _fmtQty(double q) =>
+      q == q.roundToDouble() ? q.toInt().toString() : q.toString();
 
   @override
   void dispose() {
@@ -96,7 +97,9 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     } finally {
       if (mounted) setState(() => _busy = false);
@@ -108,9 +111,14 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         title: const Text('Delete ingredient?'),
-        content: const Text('This ingredient will be removed and can no longer be used in recipes.'),
+        content: const Text(
+          'This ingredient will be removed and can no longer be used in recipes.',
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: const Text('Delete'),
@@ -124,7 +132,9 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
       if (mounted) context.pop();
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Failed: $e')));
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Failed: $e')));
       }
     }
   }
@@ -136,8 +146,8 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
     final baseLabel = unit?.family.name == 'weight'
         ? '/gram'
         : unit?.family.name == 'volume'
-            ? '/ml'
-            : '/pcs';
+        ? '/ml'
+        : '/pcs';
 
     return Scaffold(
       appBar: AppBar(
@@ -162,7 +172,9 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
               children: [
                 TextFormField(
                   controller: _nameCtrl,
-                  decoration: const InputDecoration(labelText: 'Ingredient name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Ingredient name',
+                  ),
                   validator: (v) =>
                       (v == null || v.trim().isEmpty) ? 'Required' : null,
                 ),
@@ -179,8 +191,12 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                     Expanded(
                       child: TextFormField(
                         controller: _qtyCtrl,
-                        decoration: const InputDecoration(labelText: 'Purchase quantity'),
-                        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                        decoration: const InputDecoration(
+                          labelText: 'Purchase quantity',
+                        ),
+                        keyboardType: const TextInputType.numberWithOptions(
+                          decimal: true,
+                        ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) return 'Required';
                           final n = double.tryParse(v.replaceAll(',', '.'));
@@ -210,10 +226,7 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                       child: Text('— None —'),
                     ),
                     for (final cat in kIngredientCategories)
-                      DropdownMenuItem<String?>(
-                        value: cat,
-                        child: Text(cat),
-                      ),
+                      DropdownMenuItem<String?>(value: cat, child: Text(cat)),
                   ],
                   onChanged: (v) => setState(() => _category = v),
                 ),
@@ -221,14 +234,19 @@ class _IngredientFormScreenState extends State<IngredientFormScreen> {
                 GlassCard(
                   child: Row(
                     children: [
-                      Icon(Icons.calculate_outlined, color: c.accentPrimary),
+                      Icon(Icons.calculate_outlined, color: c.primary),
                       const SizedBox(width: 12),
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('Price per base unit',
-                                style: TextStyle(color: c.textSecondary, fontSize: 12)),
+                            Text(
+                              'Price per base unit',
+                              style: TextStyle(
+                                color: c.textSecondary,
+                                fontSize: 12,
+                              ),
+                            ),
                             const SizedBox(height: 2),
                             Text(
                               '${formatRupiah(_perBase(), decimalDigits: 2)} $baseLabel',

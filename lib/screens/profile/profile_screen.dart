@@ -3,7 +3,6 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/theme/app_colors.dart';
-import '../../core/theme/gradients.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/theme_provider.dart';
 import '../../services/profile_service.dart';
@@ -106,7 +105,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     width: 56,
                     height: 56,
                     decoration: BoxDecoration(
-                      gradient: AppGradients.accent(c),
+                      color: c.primary,
                       borderRadius: BorderRadius.circular(18),
                     ),
                     child: Center(
@@ -150,13 +149,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: c.accentPrimary.withOpacity(0.14),
+                              color: c.primary.withOpacity(0.14),
                               borderRadius: BorderRadius.circular(999),
                             ),
                             child: Text(
                               'Guest Mode',
                               style: TextStyle(
-                                color: c.accentPrimary,
+                                color: c.primary,
                                 fontSize: 11,
                                 fontWeight: FontWeight.w600,
                               ),
@@ -175,7 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               decoration: const InputDecoration(labelText: 'Name'),
               enabled: !auth.isGuest,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 15),
             TextField(
               controller: _businessCtrl,
               decoration: const InputDecoration(labelText: 'Business Name'),
@@ -233,10 +232,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: Column(
                 children: [
                   ListTile(
-                    leading: Icon(
-                      Icons.receipt_outlined,
-                      color: c.accentPrimary,
-                    ),
+                    leading: Icon(Icons.receipt_outlined, color: c.primary),
                     title: const Text('Overhead Costs'),
                     subtitle: const Text(
                       'Manage costs for electricity, gas, packaging, etc.',

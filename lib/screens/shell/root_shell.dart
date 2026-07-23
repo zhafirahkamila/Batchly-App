@@ -127,7 +127,7 @@ class _NavItem extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
-    final color = selected ? c.accentPrimary : c.textSecondary;
+    final color = selected ? c.primary : c.textSecondary;
     return Expanded(
       child: InkWell(
         onTap: onTap,
@@ -163,33 +163,16 @@ class _ChatbotFab extends StatelessWidget {
     return SizedBox(
       width: 60,
       height: 60,
-      child: DecoratedBox(
-        decoration: BoxDecoration(
-          shape: BoxShape.circle,
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: c.accentGradient,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: c.accentPrimary.withOpacity(0.35),
-              blurRadius: 12,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Material(
-          color: Colors.transparent,
-          shape: const CircleBorder(),
-          child: InkWell(
-            customBorder: const CircleBorder(),
-            onTap: onTap,
-            child: Icon(
-              Icons.smart_toy_outlined,
-              color: Colors.white,
-              size: selected ? 30 : 28,
-            ),
+      child: Material(
+        color: c.primary,
+        shape: const CircleBorder(),
+        child: InkWell(
+          customBorder: const CircleBorder(),
+          onTap: onTap,
+          child: Icon(
+            Icons.smart_toy_outlined,
+            color: Colors.white,
+            size: selected ? 30 : 28,
           ),
         ),
       ),
@@ -205,14 +188,14 @@ class _GuestBanner extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = AppColors.of(context);
     return Material(
-      color: c.accentPrimary.withOpacity(0.12),
+      color: c.primary.withOpacity(0.12),
       child: SafeArea(
         bottom: false,
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
           child: Row(
             children: [
-              Icon(Icons.info_outline, color: c.accentPrimary, size: 18),
+              Icon(Icons.info_outline, color: c.primary, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
